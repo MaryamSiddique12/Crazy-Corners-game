@@ -7,270 +7,113 @@
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-    html, body {
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      background: #0b0b14;
-      font-family: system-ui, -apple-system, sans-serif;
-      color: #fff;
-    }
-    body {
-      display: flex;
-      flex-direction: column;
-      height: 100dvh;
-      height: 100vh;
-    }
+    html, body { height: 100%; width: 100%; overflow: hidden; background: #0b0b14; font-family: system-ui, -apple-system, sans-serif; color: #fff; }
+    body { display: flex; flex-direction: column; height: 100dvh; height: 100vh; }
     .screen { display: none; flex-direction: column; height: 100%; width: 100%; }
     .screen.active { display: flex; }
 
-    #menuScreen, #joinScreen, #lobbyScreen {
-      justify-content: center;
-      align-items: center;
-      padding: 16px;
-      text-align: center;
+    #menuScreen, #joinScreen, #lobbyScreen, #levelScreen {
+      justify-content: center; align-items: center; padding: 16px; text-align: center;
       background: radial-gradient(circle at 50% 30%, #1a1a2e 0%, #0b0b14 70%);
     }
     h1 { font-size: 1.6rem; color: #ff6b6b; margin-bottom: 4px; }
-    .subtitle { color: #94a3b8; margin-bottom: 18px; font-size: 0.88rem; }
+    .subtitle { color: #94a3b8; margin-bottom: 16px; font-size: 0.88rem; }
     input[type="text"] {
-      width: 100%;
-      max-width: 320px;
-      padding: 13px 10px;
-      border-radius: 11px;
-      border: 2px solid #334155;
-      background: #1e293b;
-      color: #fff;
-      font-size: 0.92rem;
-      margin-bottom: 10px;
-      text-align: center;
-      word-break: break-all;
+      width: 100%; max-width: 320px; padding: 13px 10px; border-radius: 11px;
+      border: 2px solid #334155; background: #1e293b; color: #fff; font-size: 0.92rem;
+      margin-bottom: 10px; text-align: center; word-break: break-all;
     }
     #codeInput { font-size: 0.75rem; padding: 15px 8px; }
     .btn {
-      background: #ef4444;
-      color: white;
-      border: none;
-      padding: 12px 22px;
-      border-radius: 11px;
-      font-size: 0.92rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin: 4px;
-      min-width: 140px;
+      background: #ef4444; color: white; border: none; padding: 12px 22px; border-radius: 11px;
+      font-size: 0.92rem; font-weight: 600; cursor: pointer; margin: 4px; min-width: 140px;
     }
     .btn.blue { background: #3b82f6; }
     .btn.green { background: #22c55e; }
+    .btn.yellow { background: #f59e0b; color: #111; }
     .btn:active { transform: scale(0.97); }
     .btn:disabled { opacity: 0.4; }
 
     #roomCodeBox { width: 100%; max-width: 340px; margin: 8px auto; }
     #roomCodeInput {
-      width: 100%;
-      padding: 11px 6px;
-      border-radius: 9px;
-      border: 2px solid #facc15;
-      background: #1e293b;
-      color: #facc15;
-      font-size: 0.68rem;
-      font-weight: 600;
-      text-align: center;
-      word-break: break-all;
-      user-select: text !important;
-      -webkit-user-select: text !important;
-      margin-bottom: 6px;
+      width: 100%; padding: 11px 6px; border-radius: 9px; border: 2px solid #facc15;
+      background: #1e293b; color: #facc15; font-size: 0.68rem; font-weight: 600;
+      text-align: center; word-break: break-all; user-select: text !important; -webkit-user-select: text !important; margin-bottom: 6px;
     }
-    #copyCodeBtn {
-      background: #facc15;
-      color: #111;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 9px;
-      font-weight: 700;
-      font-size: 0.88rem;
-      width: 100%;
-      max-width: 180px;
-    }
+    #copyCodeBtn { background: #facc15; color: #111; border: none; padding: 10px 18px; border-radius: 9px; font-weight: 700; font-size: 0.88rem; width: 100%; max-width: 180px; }
 
     .player-list { margin: 12px 0; text-align: left; max-width: 290px; width: 100%; }
-    .player-item {
-      background: #1e293b;
-      padding: 9px 12px;
-      border-radius: 9px;
-      margin-bottom: 5px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.88rem;
-    }
+    .player-item { background: #1e293b; padding: 9px 12px; border-radius: 9px; margin-bottom: 5px; display: flex; justify-content: space-between; font-size: 0.88rem; }
     .player-item .tag { font-size: 0.68rem; color: #22c55e; }
 
     #topBar {
-      flex: 0 0 auto;
-      padding: 5px 8px;
-      padding-top: calc(5px + env(safe-area-inset-top, 0px));
-      background: rgba(0,0,0,0.8);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.78rem;
-      z-index: 50;
+      flex: 0 0 auto; padding: 5px 8px; padding-top: calc(5px + env(safe-area-inset-top, 0px));
+      background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; z-index: 50;
     }
     #topBar .title { font-weight: 700; color: #ff6b6b; }
     #status { flex: 1; text-align: center; color: #ffd166; font-size: 0.75rem; padding: 0 4px; }
     #scoreBoard { color: #94a3b8; font-size: 0.72rem; }
 
-    #gameArea {
-      flex: 1 1 auto;
-      position: relative;
-      overflow: hidden;
-      min-height: 0;
-      background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0b0b14 70%);
-    }
+    #gameArea { flex: 1 1 auto; position: relative; overflow: hidden; min-height: 0; background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0b0b14 70%); }
     #arena {
-      position: absolute;
-      left: 50%;
-      top: 48%;
-      transform: translate(-50%, -50%);
-      width: min(90vw, 400px);
-      height: min(90vw, 400px);
-      max-height: 52vh;
+      position: absolute; left: 50%; top: 47%; transform: translate(-50%, -50%);
+      width: min(92vw, 420px); height: min(92vw, 420px); max-height: 54vh;
     }
 
     .corner {
-      position: absolute;
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      border: 3px dashed #475569;
-      background: rgba(30,41,59,0.75);
-      z-index: 2;
+      position: absolute; width: 54px; height: 54px; border-radius: 50%;
+      border: 3px dashed #475569; background: rgba(30,41,59,0.75); z-index: 2;
     }
-    .corner.active-target {
-      border-color: #facc15;
-      background: rgba(250,204,21,0.22);
-      box-shadow: 0 0 12px rgba(250,204,21,0.5);
-    }
+    .corner.active-target { border-color: #facc15; background: rgba(250,204,21,0.25); box-shadow: 0 0 14px rgba(250,204,21,0.55); }
 
     .avatar {
-      position: absolute;
-      width: 46px;
-      height: 46px;
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.75rem;
-      z-index: 10;
-      border: 3px solid rgba(255,255,255,0.25);
+      position: absolute; width: 48px; height: 48px; border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.75rem; z-index: 10; border: 3px solid rgba(255,255,255,0.25);
       box-shadow: 0 3px 8px rgba(0,0,0,0.4);
     }
-    .avatar .name { font-size: 0.45rem; max-width: 44px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .avatar .name { font-size: 0.45rem; max-width: 46px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .avatar.you { background: #22c55e; color: #052e16; border-color: #86efac; z-index: 15; }
     .avatar.friend { background: #a855f7; color: #fff; border-color: #d8b4fe; }
     .avatar.ai { background: #3b82f6; color: #fff; }
     .avatar.out { background: #475569 !important; color: #94a3b8 !important; opacity: 0.45; }
-    .avatar.moving { box-shadow: 0 0 14px rgba(56,189,248,0.9); }
+    .avatar.moving { box-shadow: 0 0 16px rgba(56,189,248,0.95); }
+    .avatar.displaced { box-shadow: 0 0 18px rgba(239,68,68,0.9); animation: shake 0.4s; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
 
     #hunter {
-      position: absolute;
-      width: 58px;
-      height: 58px;
-      border-radius: 50%;
-      background: #ef4444;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 0.75rem;
-      z-index: 20;
-      box-shadow: 0 0 18px rgba(239,68,68,0.6);
-      border: 3px solid #fca5a5;
+      position: absolute; width: 64px; height: 64px; border-radius: 50%;
+      background: #ef4444; color: white; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;
+      z-index: 20; box-shadow: 0 0 22px rgba(239,68,68,0.7); border: 3px solid #fca5a5;
     }
-    #hunter .eyes { font-size: 0.9rem; }
+    #hunter .eyes { font-size: 1rem; }
     #hunter .label { font-size: 0.45rem; }
 
     #speech {
-      position: absolute;
-      background: white;
-      color: #111;
-      padding: 4px 8px;
-      border-radius: 9px;
-      font-size: 0.68rem;
-      font-weight: 600;
-      z-index: 30;
-      opacity: 0;
-      transition: opacity 0.2s;
-      max-width: 110px;
-      text-align: center;
-      pointer-events: none;
+      position: absolute; background: white; color: #111; padding: 4px 8px; border-radius: 9px;
+      font-size: 0.68rem; font-weight: 600; z-index: 30; opacity: 0; transition: opacity 0.2s;
+      max-width: 110px; text-align: center; pointer-events: none;
     }
     #speech.show { opacity: 1; }
 
-    /* FIXED BOTTOM BAR */
     #bottomBar {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 200;
-      background: #020617;
-      border-top: 3px solid #facc15;
-      padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 6px));
-      text-align: center;
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
+      background: #020617; border-top: 3px solid #facc15;
+      padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 6px)); text-align: center;
     }
-    #hint {
-      font-size: 0.7rem;
-      color: #cbd5e1;
-      margin-bottom: 4px;
-    }
-    #speedRow {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      max-width: 340px;
-      margin: 0 auto;
-    }
-    #speedLabel {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: #facc15;
-      min-width: 48px;
-    }
-    #speedMeter {
-      flex: 1;
-      height: 20px;
-      background: #1e293b;
-      border-radius: 10px;
-      overflow: hidden;
-      border: 2px solid #64748b;
-    }
-    #speedFill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #22c55e, #facc15, #ef4444);
-      transition: width 0.1s linear;
-      border-radius: 8px;
-    }
-    #speedValue {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #fff;
-      min-width: 32px;
-    }
+    #hint { font-size: 0.68rem; color: #cbd5e1; margin-bottom: 4px; }
+    #speedRow { display: flex; align-items: center; justify-content: center; gap: 8px; max-width: 340px; margin: 0 auto; }
+    #speedLabel { font-size: 0.72rem; font-weight: 700; color: #facc15; min-width: 48px; }
+    #speedMeter { flex: 1; height: 20px; background: #1e293b; border-radius: 10px; overflow: hidden; border: 2px solid #64748b; }
+    #speedFill { height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #facc15, #ef4444); transition: width 0.1s linear; border-radius: 8px; }
+    #speedValue { font-size: 0.75rem; font-weight: 700; color: #fff; min-width: 32px; }
 
-    #gameScreen { padding-bottom: 70px; }
-    @media (max-height: 700px) {
-      #arena { max-height: 48vh; width: min(88vw, 360px); height: min(88vw, 360px); }
-    }
-    @media (max-height: 600px) {
-      #arena { max-height: 42vh; }
-      #hint { display: none; }
-    }
+    #gameScreen { padding-bottom: 72px; }
+    @media (max-height: 700px) { #arena { max-height: 48vh; width: min(88vw, 360px); height: min(88vw, 360px); } }
+    @media (max-height: 600px) { #arena { max-height: 42vh; } #hint { display: none; } }
+
+    .level-btn { display: block; width: 100%; max-width: 260px; margin: 8px auto; padding: 14px; }
   </style>
 </head>
 <body>
@@ -306,6 +149,15 @@
     <button class="btn" id="leaveBtn" style="background:#475569;">Leave</button>
   </div>
 
+  <div id="levelScreen" class="screen">
+    <h1>Select Level</h1>
+    <div class="subtitle">Higher level = harder hunter</div>
+    <button class="btn green level-btn" data-level="1">Level 1 - Calm</button>
+    <button class="btn yellow level-btn" data-level="2">Level 2 - Displacement</button>
+    <button class="btn" data-level="3" style="background:#ef4444;">Level 3 - Furious Hunter</button>
+    <button class="btn" id="backLevel" style="background:#475569; margin-top:12px;">Back</button>
+  </div>
+
   <div id="gameScreen" class="screen">
     <div id="topBar">
       <div class="title">Corner Frenzy</div>
@@ -317,7 +169,7 @@
       <div id="speech"></div>
     </div>
     <div id="bottomBar">
-      <div id="hint">YOU = GREEN • Tap corners to run • Faster taps = faster speed</div>
+      <div id="hint">Tap a corner to run. Landing on someone displaces them!</div>
       <div id="speedRow">
         <div id="speedLabel">SPEED</div>
         <div id="speedMeter"><div id="speedFill"></div></div>
@@ -330,14 +182,60 @@
     let myName = '', myId = null, isHost = false, peer = null;
     let connections = [];
     let realPlayers = {};
-    let players = [], hunter = { x: 50, y: 50, angle: 0 };
+    let players = [], hunter = { x: 50, y: 50, angle: 0, targetId: null };
     let selectedTarget = null, clickTimes = [], alive = 6;
     let gameOver = false, gameStarted = false, lastTagTime = 0;
+    let currentLevel = 1;
+    let musicEnabled = true;
 
+    // More spread corners
     const CORNER_POS = [
-      { id: 0, x: 12, y: 12 }, { id: 1, x: 50, y: 6 }, { id: 2, x: 88, y: 12 },
-      { id: 3, x: 88, y: 88 }, { id: 4, x: 50, y: 94 }, { id: 5, x: 12, y: 88 }
+      { id: 0, x: 10, y: 10 },
+      { id: 1, x: 50, y: 4 },
+      { id: 2, x: 90, y: 10 },
+      { id: 3, x: 90, y: 90 },
+      { id: 4, x: 50, y: 96 },
+      { id: 5, x: 10, y: 90 }
     ];
+
+    // Simple background music using Web Audio (no external file needed)
+    let audioCtx = null;
+    let musicNodes = [];
+    function startMusic() {
+      if (!musicEnabled || audioCtx) return;
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [220, 277, 330, 440];
+        let t = audioCtx.currentTime;
+        notes.forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.value = 0.03;
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(t + i * 0.4);
+          osc.stop(t + i * 0.4 + 8);
+          musicNodes.push(osc);
+        });
+        // simple loop drone
+        const drone = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        drone.frequency.value = 110;
+        drone.type = 'triangle';
+        g.gain.value = 0.025;
+        drone.connect(g);
+        g.connect(audioCtx.destination);
+        drone.start();
+        musicNodes.push(drone);
+      } catch(e) {}
+    }
+    function stopMusic() {
+      musicNodes.forEach(n => { try { n.stop(); } catch(e){} });
+      musicNodes = [];
+      if (audioCtx) { try { audioCtx.close(); } catch(e){} audioCtx = null; }
+    }
 
     function showScreen(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -361,7 +259,7 @@
         div.innerHTML = '<span style="color:#64748b">AI Player</span>';
         list.appendChild(div);
       }
-      document.getElementById('lobbyStatus').textContent = entries.length + ' real player(s) • AI will fill the rest';
+      document.getElementById('lobbyStatus').textContent = entries.length + ' real player(s) • AI fills the rest';
       document.getElementById('startBtn').disabled = !isHost;
       document.getElementById('startBtn').style.display = isHost ? 'inline-block' : 'none';
     }
@@ -386,7 +284,7 @@
       });
       peer.on('error', e => {
         console.error(e);
-        alert('Room error. Please refresh and try again.');
+        alert('Room error. Refresh and try again.');
       });
     }
 
@@ -399,7 +297,6 @@
         setupConn(c);
       });
       peer.on('error', e => {
-        console.error(e);
         alert('Could not join. Check the code or try again.');
         showScreen('menuScreen');
       });
@@ -410,21 +307,13 @@
         if (!isHost) c.send({ type: 'join', name: myName, id: myId });
       });
       c.on('data', data => handleData(data, c));
-      c.on('close', () => {});
-      c.on('error', () => {});
     }
 
     function handleData(data, fromConn) {
       if (data.type === 'join' && isHost) {
         realPlayers[data.id] = { name: data.name, isMe: false };
-        fromConn.send({
-          type: 'welcome',
-          players: Object.values(realPlayers).map(p => ({ name: p.name }))
-        });
-        broadcast({
-          type: 'player-list',
-          players: Object.values(realPlayers).map(p => ({ name: p.name }))
-        });
+        fromConn.send({ type: 'welcome', players: Object.values(realPlayers).map(p => ({ name: p.name })) });
+        broadcast({ type: 'player-list', players: Object.values(realPlayers).map(p => ({ name: p.name })) });
         updateLobby();
       }
       if (data.type === 'welcome' && !isHost) {
@@ -434,10 +323,9 @@
         document.getElementById('copyCodeBtn').style.display = 'none';
         updateLobbyFromList(data.players);
       }
-      if (data.type === 'player-list') {
-        updateLobbyFromList(data.players);
-      }
+      if (data.type === 'player-list') updateLobbyFromList(data.players);
       if (data.type === 'start') {
+        currentLevel = data.level || 1;
         startGame(data.realNames || []);
       }
       if (data.type === 'move') {
@@ -486,10 +374,11 @@
         div.innerHTML = '<span style="color:#64748b">AI Player</span>';
         el.appendChild(div);
       }
-      document.getElementById('lobbyStatus').textContent = total + ' real player(s) • AI will fill the rest';
+      document.getElementById('lobbyStatus').textContent = total + ' real player(s) • AI fills the rest';
       document.getElementById('startBtn').style.display = 'none';
     }
 
+    // Buttons
     document.getElementById('createBtn').onclick = () => {
       myName = document.getElementById('nameInput').value.trim() || 'Player';
       initHost();
@@ -506,11 +395,20 @@
     document.getElementById('backFromJoin').onclick = () => showScreen('menuScreen');
     document.getElementById('startBtn').onclick = () => {
       if (!isHost) return;
-      const realNames = Object.values(realPlayers).map(p => p.name);
-      broadcast({ type: 'start', realNames: realNames });
-      startGame(realNames);
+      showScreen('levelScreen');
     };
-    document.getElementById('leaveBtn').onclick = () => location.reload();
+    document.getElementById('leaveBtn').onclick = () => { stopMusic(); location.reload(); };
+    document.getElementById('backLevel').onclick = () => showScreen('lobbyScreen');
+
+    document.querySelectorAll('.level-btn').forEach(btn => {
+      btn.onclick = () => {
+        currentLevel = parseInt(btn.dataset.level);
+        const realNames = Object.values(realPlayers).map(p => p.name);
+        broadcast({ type: 'start', realNames: realNames, level: currentLevel });
+        startGame(realNames);
+      };
+    });
+
     document.getElementById('copyCodeBtn').onclick = () => {
       const input = document.getElementById('roomCodeInput');
       input.select();
@@ -531,6 +429,7 @@
       gameOver = false;
       alive = 6;
       showScreen('gameScreen');
+      startMusic();
 
       players = [];
       const names = realNames && realNames.length ? realNames : [myName];
@@ -543,7 +442,7 @@
           id: i, name: name, x: pos.x, y: pos.y, cornerId: i,
           targetCorner: null, speed: 0, isMoving: false, isOut: false,
           isYou: isYou, isFriend: isReal && !isYou, isAI: !isReal,
-          realId: isYou ? myId : null
+          realId: isYou ? myId : null, idleTime: 0
         });
       }
       if (isHost) {
@@ -554,19 +453,19 @@
         });
       }
 
-      hunter = { x: 50, y: 50, angle: 0 };
+      hunter = { x: 50, y: 50, angle: 0, targetId: null };
       selectedTarget = null;
       clickTimes = [];
       renderCorners();
       renderAll();
-      document.getElementById('status').textContent = 'Tap corners to run!';
+      document.getElementById('status').textContent = 'Level ' + currentLevel + ' • Tap corners!';
       updateScore();
       if (isHost) startHostLoop();
       else startClientLoop();
     }
 
     function updateScore() {
-      document.getElementById('scoreBoard').textContent = 'Alive: ' + alive;
+      document.getElementById('scoreBoard').textContent = 'Alive: ' + alive + ' | L' + currentLevel;
     }
 
     function renderCorners() {
@@ -575,8 +474,8 @@
       CORNER_POS.forEach(c => {
         const div = document.createElement('div');
         div.className = 'corner';
-        div.style.left = 'calc(' + c.x + '% - 26px)';
-        div.style.top = 'calc(' + c.y + '% - 26px)';
+        div.style.left = 'calc(' + c.x + '% - 27px)';
+        div.style.top = 'calc(' + c.y + '% - 27px)';
         div.dataset.id = c.id;
         div.addEventListener('click', () => onCornerClick(c.id));
         arena.appendChild(div);
@@ -597,16 +496,17 @@
         else cls += ' ai';
         if (p.isOut) cls += ' out';
         if (p.isMoving) cls += ' moving';
+        if (p.justDisplaced) cls += ' displaced';
         div.className = cls;
-        div.style.left = 'calc(' + p.x + '% - 23px)';
-        div.style.top = 'calc(' + p.y + '% - 23px)';
+        div.style.left = 'calc(' + p.x + '% - 24px)';
+        div.style.top = 'calc(' + p.y + '% - 24px)';
         div.innerHTML = '<div>' + (p.isYou ? 'YOU' : (p.isFriend ? 'P' : (p.id+1))) + '</div><div class="name">' + p.name + '</div>';
         document.getElementById('arena').appendChild(div);
       });
       const hEl = document.getElementById('hunter');
       if (hEl) {
-        hEl.style.left = 'calc(' + hunter.x + '% - 29px)';
-        hEl.style.top = 'calc(' + hunter.y + '% - 29px)';
+        hEl.style.left = 'calc(' + hunter.x + '% - 32px)';
+        hEl.style.top = 'calc(' + hunter.y + '% - 32px)';
         hEl.style.transform = 'rotate(' + hunter.angle + 'deg)';
       }
       document.querySelectorAll('.corner').forEach(c => {
@@ -622,7 +522,7 @@
       const now = performance.now();
       clickTimes.push(now);
       clickTimes = clickTimes.filter(t => now - t < 800);
-      const newSpeed = Math.min(2.8, 0.35 + clickTimes.length * 0.38);
+      const newSpeed = Math.min(2.9, 0.35 + clickTimes.length * 0.4);
 
       if (me.targetCorner === cornerId && me.isMoving) {
         me.speed = Math.max(me.speed, newSpeed);
@@ -633,7 +533,7 @@
         selectedTarget = cornerId;
       }
 
-      const pct = Math.min(100, (me.speed / 2.8) * 100);
+      const pct = Math.min(100, (me.speed / 2.9) * 100);
       document.getElementById('speedFill').style.width = pct + '%';
       document.getElementById('speedValue').textContent = me.speed.toFixed(1);
       document.getElementById('status').textContent = 'Running...';
@@ -641,22 +541,74 @@
       broadcast({ type: 'move', id: myId, target: cornerId, speed: me.speed });
     }
 
+    // CORE NEW LOGIC: when arriving at occupied corner → displace the previous player
+    function arriveAtCorner(p) {
+      const targetId = p.targetCorner;
+      const occupant = players.find(o => o.cornerId === targetId && o.id !== p.id && !o.isOut && !o.isMoving);
+
+      p.x = CORNER_POS[targetId].x;
+      p.y = CORNER_POS[targetId].y;
+      p.cornerId = targetId;
+      p.isMoving = false;
+      p.speed = 0;
+      p.targetCorner = null;
+      p.idleTime = 0;
+
+      if (p.isYou) {
+        selectedTarget = null;
+        document.getElementById('speedFill').style.width = '0%';
+        document.getElementById('speedValue').textContent = '0';
+      }
+
+      // Displacement (main new rule)
+      if (occupant && currentLevel >= 2) {
+        // Force the previous player out
+        occupant.justDisplaced = true;
+        setTimeout(() => { occupant.justDisplaced = false; }, 500);
+
+        // Find a free corner for the displaced player
+        const freeCorners = CORNER_POS.filter(c => !players.some(pl => pl.cornerId === c.id && !pl.isOut && pl.id !== occupant.id));
+        if (freeCorners.length > 0) {
+          const escape = freeCorners[Math.floor(Math.random() * freeCorners.length)];
+          occupant.targetCorner = escape.id;
+          occupant.isMoving = true;
+          occupant.speed = 1.4 + Math.random() * 0.8;
+          if (occupant.isYou) {
+            document.getElementById('status').textContent = 'You were displaced! Run!';
+          }
+        } else {
+          // No free corner - they become vulnerable
+          occupant.isMoving = true;
+          occupant.speed = 1.2;
+          occupant.targetCorner = (occupant.cornerId + 1) % 6;
+        }
+
+        // Hunter gets attracted to the displaced player
+        if (currentLevel >= 2) {
+          hunter.targetId = occupant.id;
+        }
+        say('Displaced!');
+      }
+
+      if (p.isYou) {
+        document.getElementById('status').textContent = 'Safe at corner!';
+      }
+    }
+
     function movePlayers(dt) {
       players.forEach(p => {
-        if (p.isOut || !p.isMoving || p.targetCorner === null) return;
+        if (p.isOut) return;
+        if (!p.isMoving) {
+          p.idleTime = (p.idleTime || 0) + dt;
+          return;
+        }
+        p.idleTime = 0;
+
         const target = CORNER_POS[p.targetCorner];
         const dx = target.x - p.x, dy = target.y - p.y;
         const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 1.4) {
-          p.x = target.x; p.y = target.y;
-          p.cornerId = p.targetCorner;
-          p.isMoving = false; p.speed = 0; p.targetCorner = null;
-          if (p.isYou) {
-            selectedTarget = null;
-            document.getElementById('speedFill').style.width = '0%';
-            document.getElementById('speedValue').textContent = '0';
-            document.getElementById('status').textContent = 'Safe! Tap another corner';
-          }
+        if (dist < 1.5) {
+          arriveAtCorner(p);
           return;
         }
         const step = p.speed * dt * 0.055;
@@ -667,54 +619,89 @@
 
     let aiTimer = 0, lookTimer = 0, patrol = 0;
     function updateAI(dt) {
+      // AI players decide to move
       aiTimer += dt;
-      if (aiTimer > 950) {
+      if (aiTimer > 900) {
         aiTimer = 0;
         players.forEach(p => {
           if (!p.isAI || p.isOut || p.isMoving) return;
-          if (Math.random() < 0.34) {
+          if (Math.random() < 0.38) {
             let nc;
             do { nc = Math.floor(Math.random() * 6); } while (nc === p.cornerId);
             p.targetCorner = nc;
             p.isMoving = true;
-            p.speed = 0.55 + Math.random() * 1.2;
+            p.speed = 0.7 + Math.random() * 1.3;
           }
         });
       }
-      lookTimer += dt;
-      if (lookTimer > 1200 + Math.random() * 1000) {
-        lookTimer = 0;
-        const living = players.filter(p => !p.isOut);
-        if (living.length && Math.random() < 0.55) {
-          const t = living[Math.floor(Math.random() * living.length)];
-          hunter.angle = Math.atan2(t.y - hunter.y, t.x - hunter.x) * 180 / Math.PI + 90;
-          if (Math.random() < 0.4) say(['I see you...', "Don't move!", 'Hmm...', 'Looking...'][Math.floor(Math.random()*4)]);
-        } else hunter.angle = Math.random() * 360;
-      }
-      patrol += dt * 0.00032;
-      hunter.x += (50 + Math.cos(patrol) * 15 - hunter.x) * 0.007 * dt;
-      hunter.y += (50 + Math.sin(patrol * 0.85) * 13 - hunter.y) * 0.007 * dt;
 
-      const moving = players.filter(p => p.isMoving && !p.isOut);
-      if (moving.length && Math.random() < 0.02) {
-        const v = moving[Math.floor(Math.random() * moving.length)];
-        const dx = v.x - hunter.x, dy = v.y - hunter.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 38) {
-          hunter.x += (dx / dist) * 0.85;
-          hunter.y += (dy / dist) * 0.85;
-          hunter.angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+      // Hunter behavior based on level
+      const aggressiveness = currentLevel === 1 ? 0.012 : (currentLevel === 2 ? 0.025 : 0.04);
+      const huntSpeed = currentLevel === 1 ? 0.6 : (currentLevel === 2 ? 0.95 : 1.35);
+
+      lookTimer += dt;
+      if (lookTimer > 900 + Math.random() * 800) {
+        lookTimer = 0;
+
+        // Prefer targeting displaced or idle players
+        let target = null;
+        if (hunter.targetId !== null) {
+          target = players.find(p => p.id === hunter.targetId && !p.isOut);
+        }
+        if (!target) {
+          // Target someone who is idle too long or moving
+          const candidates = players.filter(p => !p.isOut && (p.isMoving || (p.idleTime > 2500)));
+          if (candidates.length) target = candidates[Math.floor(Math.random() * candidates.length)];
+        }
+        if (!target) {
+          const living = players.filter(p => !p.isOut);
+          if (living.length) target = living[Math.floor(Math.random() * living.length)];
+        }
+
+        if (target) {
+          hunter.targetId = target.id;
+          hunter.angle = Math.atan2(target.y - hunter.y, target.x - hunter.x) * 180 / Math.PI + 90;
+          if (Math.random() < 0.45) say(['I see you!', 'Run!', 'Got you soon!', 'Stay still...'][Math.floor(Math.random()*4)]);
+        } else {
+          hunter.angle = Math.random() * 360;
         }
       }
+
+      // Move hunter toward target or patrol between corners
+      if (hunter.targetId !== null) {
+        const t = players.find(p => p.id === hunter.targetId && !p.isOut);
+        if (t) {
+          const dx = t.x - hunter.x, dy = t.y - hunter.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist > 3) {
+            hunter.x += (dx / dist) * huntSpeed * dt * 0.04;
+            hunter.y += (dy / dist) * huntSpeed * dt * 0.04;
+          }
+        } else {
+          hunter.targetId = null;
+        }
+      } else {
+        // Patrol - move between corners more freely
+        patrol += dt * 0.0004;
+        const tx = 50 + Math.cos(patrol) * 28;
+        const ty = 50 + Math.sin(patrol * 0.7) * 26;
+        hunter.x += (tx - hunter.x) * 0.006 * dt;
+        hunter.y += (ty - hunter.y) * 0.006 * dt;
+      }
+
+      // Keep hunter inside bounds
+      hunter.x = Math.max(8, Math.min(92, hunter.x));
+      hunter.y = Math.max(8, Math.min(92, hunter.y));
     }
 
     function checkTags() {
       const now = performance.now();
-      if (now - lastTagTime < 850) return;
+      if (now - lastTagTime < 700) return;
       players.forEach(p => {
         if (p.isOut || !p.isMoving) return;
         const dist = Math.sqrt((p.x - hunter.x)**2 + (p.y - hunter.y)**2);
-        if (dist < 12) {
+        const tagDist = currentLevel >= 3 ? 13.5 : 12;
+        if (dist < tagDist) {
           p.isOut = true;
           p.isMoving = false;
           alive--;
@@ -729,6 +716,7 @@
 
     function endRound() {
       gameOver = true;
+      stopMusic();
       const winner = players.find(p => !p.isOut);
       const msg = winner ? (winner.isYou ? 'YOU WIN!' : winner.name + ' wins!') : 'Everyone out!';
       document.getElementById('status').textContent = msg;
@@ -739,9 +727,9 @@
       const el = document.getElementById('speech');
       el.textContent = text;
       el.style.left = 'calc(' + hunter.x + '% - 45px)';
-      el.style.top = 'calc(' + hunter.y + '% - 75px)';
+      el.style.top = 'calc(' + hunter.y + '% - 78px)';
       el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 1300);
+      setTimeout(() => el.classList.remove('show'), 1200);
     }
 
     function startHostLoop() {
@@ -759,9 +747,9 @@
               type: 'state',
               players: players.map(p => ({
                 id: p.id, x: p.x, y: p.y, isMoving: p.isMoving,
-                isOut: p.isOut, targetCorner: p.targetCorner, speed: p.speed
+                isOut: p.isOut, targetCorner: p.targetCorner, speed: p.speed, cornerId: p.cornerId
               })),
-              hunter: { x: hunter.x, y: hunter.y, angle: hunter.angle },
+              hunter: { x: hunter.x, y: hunter.y, angle: hunter.angle, targetId: hunter.targetId },
               alive: alive
             });
           }
@@ -794,11 +782,13 @@
           p.isOut = sp.isOut;
           p.targetCorner = sp.targetCorner;
           p.speed = sp.speed;
+          p.cornerId = sp.cornerId;
         }
       });
       hunter.x = data.hunter.x;
       hunter.y = data.hunter.y;
       hunter.angle = data.hunter.angle;
+      hunter.targetId = data.hunter.targetId;
       alive = data.alive;
       updateScore();
     }
