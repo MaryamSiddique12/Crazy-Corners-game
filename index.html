@@ -2,35 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Corner Frenzy - Multiplayer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Corner Frenzy</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     body, .screen, .btn, .avatar, .corner, #hunter { user-select: none; }
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #0b0b14;
-      color: #fff;
-      height: 100vh;
-      width: 100vw;
+    html, body {
+      height: 100%;
+      width: 100%;
       overflow: hidden;
+      background: #0b0b14;
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #fff;
+    }
+    body {
       display: flex;
       flex-direction: column;
+      /* important for mobile browser bars */
+      height: 100dvh;
+      height: 100vh;
     }
     .screen { display: none; flex-direction: column; height: 100%; width: 100%; }
     .screen.active { display: flex; }
 
     /* ===== MENU / LOBBY ===== */
-    #menuScreen, #lobbyScreen {
+    #menuScreen, #joinScreen, #lobbyScreen {
       justify-content: center;
       align-items: center;
       padding: 20px;
       text-align: center;
       background: radial-gradient(circle at 50% 30%, #1a1a2e 0%, #0b0b14 70%);
     }
-    h1 { font-size: 1.8rem; color: #ff6b6b; margin-bottom: 8px; }
-    .subtitle { color: #94a3b8; margin-bottom: 28px; font-size: 0.95rem; }
+    h1 { font-size: 1.7rem; color: #ff6b6b; margin-bottom: 6px; }
+    .subtitle { color: #94a3b8; margin-bottom: 22px; font-size: 0.9rem; }
     input[type="text"] {
       width: 100%;
       max-width: 320px;
@@ -40,151 +45,152 @@
       background: #1e293b;
       color: #fff;
       font-size: 0.95rem;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       text-align: center;
       word-break: break-all;
     }
     #codeInput {
       max-width: 340px;
-      font-size: 0.8rem;
-      letter-spacing: 0;
+      font-size: 0.78rem;
       padding: 16px 10px;
     }
-    input:focus { outline: none; border-color: #3b82f6; }
     .btn {
       background: #ef4444;
       color: white;
       border: none;
-      padding: 14px 28px;
+      padding: 13px 24px;
       border-radius: 12px;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
-      margin: 6px;
-      min-width: 160px;
-      box-shadow: 0 4px 14px rgba(239,68,68,0.35);
+      margin: 5px;
+      min-width: 150px;
+      box-shadow: 0 4px 12px rgba(239,68,68,0.3);
     }
-    .btn.blue { background: #3b82f6; box-shadow: 0 4px 14px rgba(59,130,246,0.35); }
-    .btn.green { background: #22c55e; box-shadow: 0 4px 14px rgba(34,197,94,0.35); }
+    .btn.blue { background: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.3); }
+    .btn.green { background: #22c55e; box-shadow: 0 4px 12px rgba(34,197,94,0.3); }
     .btn:active { transform: scale(0.97); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    #roomCodeBox {
-      width: 100%;
-      max-width: 320px;
-      margin: 12px auto 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      align-items: center;
-    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    #roomCodeBox { width: 100%; max-width: 340px; margin: 10px auto; }
     #roomCodeInput {
       width: 100%;
-      padding: 14px 10px;
+      padding: 12px 8px;
       border-radius: 10px;
       border: 2px solid #facc15;
       background: #1e293b;
       color: #facc15;
-      font-size: 0.78rem;
+      font-size: 0.72rem;
       font-weight: 600;
       text-align: center;
-      letter-spacing: 0.3px;
+      word-break: break-all;
       user-select: text !important;
       -webkit-user-select: text !important;
-      word-break: break-all;
+      margin-bottom: 8px;
     }
     #copyCodeBtn {
       background: #facc15;
       color: #111;
       border: none;
-      padding: 10px 20px;
+      padding: 11px 20px;
       border-radius: 10px;
       font-weight: 700;
       font-size: 0.9rem;
       cursor: pointer;
-      min-width: 140px;
+      width: 100%;
+      max-width: 200px;
     }
-    #copyCodeBtn:active { transform: scale(0.97); }
-    .player-list { margin: 16px 0; text-align: left; max-width: 280px; width: 100%; }
+
+    .player-list { margin: 14px 0; text-align: left; max-width: 300px; width: 100%; }
     .player-item {
       background: #1e293b;
       padding: 10px 14px;
       border-radius: 10px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-size: 0.9rem;
     }
-    .player-item .you-tag { color: #22c55e; font-size: 0.75rem; }
+    .player-item .tag { font-size: 0.7rem; color: #22c55e; }
 
-    /* ===== GAME ===== */
+    /* ===== GAME SCREEN ===== */
+    #gameScreen { background: #0b0b14; }
+
     #topBar {
       flex: 0 0 auto;
-      padding: 8px 12px;
-      background: rgba(0,0,0,0.65);
+      padding: 6px 10px;
+      padding-top: calc(6px + env(safe-area-inset-top, 0px));
+      background: rgba(0,0,0,0.75);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       z-index: 50;
+      min-height: 36px;
     }
     #topBar .title { font-weight: 700; color: #ff6b6b; }
-    #status { flex: 1; text-align: center; color: #ffd166; padding: 0 8px; font-size: 0.82rem; }
-    #scoreBoard { color: #94a3b8; white-space: nowrap; font-size: 0.8rem; }
+    #status { flex: 1; text-align: center; color: #ffd166; padding: 0 6px; font-size: 0.78rem; }
+    #scoreBoard { color: #94a3b8; white-space: nowrap; font-size: 0.75rem; }
 
     #gameArea {
-      flex: 1;
+      flex: 1 1 auto;
       position: relative;
+      overflow: hidden;
       background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0b0b14 70%);
+      min-height: 0; /* critical for flex children */
     }
     #arena {
       position: absolute;
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-      width: min(94vw, 480px);
-      height: min(94vw, 480px);
-      max-height: 70vh;
+      width: min(92vw, 440px);
+      height: min(92vw, 440px);
+      max-height: 62vh;
     }
+
     .corner {
       position: absolute;
-      width: 60px;
-      height: 60px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       border: 3px dashed #475569;
-      background: rgba(30,41,59,0.7);
+      background: rgba(30,41,59,0.75);
       z-index: 2;
     }
     .corner.active-target {
       border-color: #facc15;
-      background: rgba(250,204,21,0.18);
-      box-shadow: 0 0 14px rgba(250,204,21,0.45);
+      background: rgba(250,204,21,0.2);
+      box-shadow: 0 0 14px rgba(250,204,21,0.5);
     }
+
     .avatar {
       position: absolute;
-      width: 50px;
-      height: 50px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       z-index: 10;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.45);
       border: 3px solid rgba(255,255,255,0.25);
     }
-    .avatar .name { font-size: 0.5rem; opacity: 0.9; margin-top: -1px; }
+    .avatar .name { font-size: 0.48rem; opacity: 0.9; margin-top: -1px; max-width: 46px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .avatar.you { background: #22c55e; color: #052e16; border-color: #86efac; z-index: 15; }
     .avatar.friend { background: #a855f7; color: #fff; border-color: #d8b4fe; }
     .avatar.ai { background: #3b82f6; color: #fff; }
     .avatar.out { background: #475569 !important; color: #94a3b8 !important; opacity: 0.45; }
-    .avatar.moving { box-shadow: 0 0 16px rgba(56,189,248,0.85); }
+    .avatar.moving { box-shadow: 0 0 16px rgba(56,189,248,0.9); }
 
     #hunter {
       position: absolute;
-      width: 66px;
-      height: 66px;
+      width: 62px;
+      height: 62px;
       border-radius: 50%;
       background: #ef4444;
       color: white;
@@ -193,72 +199,91 @@
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       z-index: 20;
-      box-shadow: 0 0 22px rgba(239,68,68,0.6);
+      box-shadow: 0 0 20px rgba(239,68,68,0.65);
       border: 3px solid #fca5a5;
     }
-    #hunter .eyes { font-size: 1rem; }
-    #hunter .label { font-size: 0.5rem; }
+    #hunter .eyes { font-size: 0.95rem; }
+    #hunter .label { font-size: 0.48rem; }
 
     #speech {
       position: absolute;
       background: white;
       color: #111;
-      padding: 5px 10px;
+      padding: 5px 9px;
       border-radius: 10px;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 600;
       z-index: 30;
       opacity: 0;
       transition: opacity 0.2s;
-      max-width: 130px;
+      max-width: 120px;
       text-align: center;
       pointer-events: none;
     }
     #speech.show { opacity: 1; }
 
+    /* ===== BOTTOM BAR - MOBILE FIRST ===== */
     #bottomBar {
       flex: 0 0 auto;
-      padding: 10px 14px calc(14px + env(safe-area-inset-bottom, 0px));
-      background: rgba(0,0,0,0.85);
+      padding: 8px 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 8px));
+      background: #0f172a;
+      border-top: 2px solid #334155;
       text-align: center;
-      border-top: 1px solid #334155;
-      z-index: 60;
+      z-index: 100;
     }
     #hint {
-      font-size: 0.78rem;
+      font-size: 0.72rem;
       color: #cbd5e1;
-      line-height: 1.35;
-      margin-bottom: 8px;
+      line-height: 1.3;
+      margin-bottom: 6px;
     }
     #speedLabel {
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       color: #94a3b8;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
+      font-weight: 600;
     }
     #speedMeter {
-      height: 14px;
+      height: 18px;
       background: #1e293b;
-      border-radius: 8px;
+      border-radius: 10px;
       overflow: hidden;
-      margin: 0 auto;
-      max-width: 320px;
-      width: 90%;
-      border: 2px solid #334155;
+      margin: 0 auto 4px;
+      max-width: 300px;
+      width: 92%;
+      border: 2px solid #475569;
     }
     #speedFill {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, #22c55e, #facc15, #ef4444);
-      transition: width 0.12s;
-      border-radius: 6px;
+      background: linear-gradient(90deg, #22c55e 0%, #facc15 55%, #ef4444 100%);
+      transition: width 0.1s linear;
+      border-radius: 8px;
+    }
+
+    /* Extra small phones */
+    @media (max-height: 700px) {
+      #arena {
+        max-height: 55vh;
+        width: min(90vw, 380px);
+        height: min(90vw, 380px);
+      }
+      #hint { font-size: 0.68rem; }
+      #speedMeter { height: 16px; }
+    }
+    @media (max-height: 600px) {
+      #arena { max-height: 48vh; }
+      #topBar { min-height: 32px; padding: 4px 8px; }
+      #hint { display: none; }
     }
   </style>
 </head>
 <body>
 
-  <!-- MENU SCREEN -->
+  <!-- MENU -->
   <div id="menuScreen" class="screen active">
     <h1>Corner Frenzy</h1>
     <div class="subtitle">Play with friends • AI fills the rest</div>
@@ -267,34 +292,32 @@
       <button class="btn green" id="createBtn">Create Room</button>
       <button class="btn blue" id="joinBtn">Join Room</button>
     </div>
-    <div style="margin-top:18px; font-size:0.8rem; color:#64748b;">
-      Share the room code with your friend
-    </div>
   </div>
 
-  <!-- JOIN SCREEN -->
+  <!-- JOIN -->
   <div id="joinScreen" class="screen">
     <h1>Join Room</h1>
-    <input type="text" id="codeInput" placeholder="Paste full room code here" style="font-size:0.85rem; letter-spacing:0;" />
+    <div class="subtitle">Paste the full code your friend sent</div>
+    <input type="text" id="codeInput" placeholder="Paste full room code here" />
     <button class="btn blue" id="confirmJoinBtn">Join</button>
     <button class="btn" id="backFromJoin" style="background:#475569;">Back</button>
   </div>
 
-  <!-- LOBBY SCREEN -->
+  <!-- LOBBY -->
   <div id="lobbyScreen" class="screen">
     <h1>Room Lobby</h1>
-    <div class="subtitle">Copy the code and send it to your friend</div>
+    <div class="subtitle">Share the code with friends</div>
     <div id="roomCodeBox">
       <input type="text" id="roomCodeInput" readonly value="Loading..." />
       <button id="copyCodeBtn">Copy Code</button>
     </div>
     <div class="player-list" id="playerList"></div>
-    <div id="lobbyStatus" style="color:#94a3b8; font-size:0.85rem; margin:10px 0;">Waiting for players...</div>
+    <div id="lobbyStatus" style="color:#94a3b8; font-size:0.82rem; margin:8px 0;">Waiting for players...</div>
     <button class="btn green" id="startBtn" disabled>Start Game</button>
     <button class="btn" id="leaveBtn" style="background:#475569;">Leave</button>
   </div>
 
-  <!-- GAME SCREEN -->
+  <!-- GAME -->
   <div id="gameScreen" class="screen">
     <div id="topBar">
       <div class="title">Corner Frenzy</div>
@@ -306,8 +329,8 @@
       <div id="speech"></div>
     </div>
     <div id="bottomBar">
-      <div id="hint">You are GREEN. Tap corners to run. Tap faster = run faster.</div>
-      <div id="speedLabel">Speed</div>
+      <div id="hint">You = GREEN. Tap corners to run. Faster taps = higher speed.</div>
+      <div id="speedLabel">SPEED</div>
       <div id="speedMeter"><div id="speedFill"></div></div>
     </div>
   </div>
@@ -318,17 +341,17 @@
     let myId = null;
     let isHost = false;
     let peer = null;
-    let conn = null;               // connection to the other player
+    let connections = [];          // support multiple friends
     let roomCode = '';
-    let players = [];              // all 6 logical players
-    let realPlayers = {};          // { peerId: {name, playerIndex} }
+    let realPlayers = {};          // peerId -> {name, isMe, index}
+    let players = [];
     let hunter = { x: 50, y: 50, angle: 0 };
     let selectedTarget = null;
     let clickTimes = [];
     let alive = 6;
     let gameOver = false;
-    let lastTagTime = 0;
     let gameStarted = false;
+    let lastTagTime = 0;
 
     const CORNER_POS = [
       { id: 0, x: 12, y: 12 },
@@ -339,164 +362,130 @@
       { id: 5, x: 12, y: 88 }
     ];
 
-    // ================== UI HELPERS ==================
+    // ================== UI ==================
     function showScreen(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
     }
 
-    function updatePlayerList() {
+    function updateLobby() {
       const list = document.getElementById('playerList');
       list.innerHTML = '';
       const entries = Object.values(realPlayers);
       entries.forEach(p => {
         const div = document.createElement('div');
         div.className = 'player-item';
-        div.innerHTML = `<span>${p.name}</span> ${p.isMe ? '<span class="you-tag">YOU</span>' : ''}`;
+        div.innerHTML = `<span>${p.name}</span>${p.isMe ? '<span class="tag">YOU</span>' : ''}`;
         list.appendChild(div);
       });
-      // show AI slots
-      const aiCount = 6 - entries.length;
-      for (let i = 0; i < aiCount; i++) {
+      const aiNeeded = Math.max(0, 6 - entries.length);
+      for (let i = 0; i < aiNeeded; i++) {
         const div = document.createElement('div');
         div.className = 'player-item';
         div.innerHTML = `<span style="color:#64748b">AI Player</span>`;
         list.appendChild(div);
       }
-      document.getElementById('lobbyStatus').textContent =
-        entries.length >= 2 ? 'Ready! Host can start the game' : 'Waiting for friend to join...';
+      const status = document.getElementById('lobbyStatus');
+      status.textContent = entries.length >= 1
+        ? `${entries.length} player(s) ready • AI will fill the rest`
+        : 'Waiting for players...';
       document.getElementById('startBtn').disabled = !(isHost && entries.length >= 1);
     }
 
-    // ================== PEERJS SETUP ==================
-    function initPeer(asHost, joinCode = null) {
-      peer = new Peer();
-      peer.on('open', (id) => {
-        myId = id;
-        if (asHost) {
-          roomCode = id.slice(0, 6).toUpperCase();
-          document.getElementById('roomCodeDisplay').textContent = roomCode;
-          realPlayers[id] = { name: myName, isMe: true, playerIndex: 0 };
-          isHost = true;
-          updatePlayerList();
-          showScreen('lobbyScreen');
-        } else {
-          // join
-          connectToHost(joinCode);
-        }
-      });
-
-      peer.on('connection', (c) => {
-        // Host receives connection from friend
-        conn = c;
-        setupConnection(c);
-      });
-
-      peer.on('error', (err) => {
-        alert('Connection error: ' + err.type + '\nTry again or check the code.');
-        showScreen('menuScreen');
+    function broadcast(data) {
+      connections.forEach(c => {
+        if (c.open) c.send(data);
       });
     }
 
-    function connectToHost(code) {
-      // We need the full peer id. For simplicity we use a short code system.
-      // Because PeerJS ids are long, we will use a simple approach:
-      // Host shows first 6 chars. Friend must enter the full id or we use a workaround.
-      // Better practical approach for prototype: Host copies full ID.
-      // For this version we will make the room code = full peer id (user can copy it).
-    }
-
-    // Improved practical version: room code = full peer ID (copy-paste friendly)
-    function initPeerHost() {
+    // ================== PEER ==================
+    function initHost() {
       peer = new Peer();
-      peer.on('open', (id) => {
+      peer.on('open', id => {
         myId = id;
         roomCode = id;
-
-        // Put full code in the input so it is easy to select & copy
-        const codeInput = document.getElementById('roomCodeInput');
-        codeInput.value = id;
-
-        realPlayers[id] = { name: myName, isMe: true, playerIndex: 0 };
+        document.getElementById('roomCodeInput').value = id;
+        realPlayers[id] = { name: myName, isMe: true, index: 0 };
         isHost = true;
-        updatePlayerList();
+        updateLobby();
         showScreen('lobbyScreen');
       });
-      peer.on('connection', (c) => {
-        conn = c;
-        setupConnection(c);
+      peer.on('connection', c => {
+        connections.push(c);
+        setupConn(c);
       });
-      peer.on('error', (e) => {
+      peer.on('error', e => {
         console.error(e);
-        alert('Error creating room. Refresh and try again.');
+        alert('Error creating room. Please refresh and try again.');
       });
     }
 
-    function initPeerJoin(hostId) {
+    function initJoin(hostId) {
       peer = new Peer();
-      peer.on('open', (id) => {
+      peer.on('open', id => {
         myId = id;
-        conn = peer.connect(hostId, { reliable: true });
-        setupConnection(conn);
+        const c = peer.connect(hostId, { reliable: true });
+        connections.push(c);
+        setupConn(c);
       });
-      peer.on('error', (e) => {
+      peer.on('error', e => {
         alert('Could not join. Check the code and try again.');
         showScreen('menuScreen');
       });
     }
 
-    function setupConnection(c) {
+    function setupConn(c) {
       c.on('open', () => {
         if (!isHost) {
-          // Joiner sends name
           c.send({ type: 'join', name: myName, id: myId });
         }
       });
-
-      c.on('data', (data) => {
-        handleData(data);
-      });
-
+      c.on('data', data => handleData(data, c));
       c.on('close', () => {
-        alert('Other player disconnected');
-        location.reload();
+        // simple: reload on disconnect for now
+        if (gameStarted) {
+          alert('A player disconnected');
+        }
       });
     }
 
-    function handleData(data) {
+    function handleData(data, fromConn) {
       if (data.type === 'join' && isHost) {
-        // Friend joined
-        realPlayers[data.id] = { name: data.name, isMe: false, playerIndex: 1 };
-        // Tell the joiner about existing players + assign index
-        conn.send({
+        // new friend joined
+        const idx = Object.keys(realPlayers).length;
+        realPlayers[data.id] = { name: data.name, isMe: false, index: idx };
+        // welcome the new player
+        fromConn.send({
           type: 'welcome',
-          players: Object.values(realPlayers).map(p => ({ name: p.name, isMe: false })),
-          yourIndex: 1
+          yourName: data.name,
+          players: Object.values(realPlayers).map(p => ({ name: p.name, isMe: false }))
         });
-        // Also tell them our name
-        conn.send({ type: 'player-update', players: getPublicPlayers() });
-        updatePlayerList();
+        // tell everyone the updated list
+        broadcast({
+          type: 'player-list',
+          players: Object.values(realPlayers).map(p => ({ name: p.name }))
+        });
+        updateLobby();
       }
 
       if (data.type === 'welcome' && !isHost) {
-        realPlayers[myId] = { name: myName, isMe: true, playerIndex: data.yourIndex };
+        realPlayers[myId] = { name: myName, isMe: true, index: 0 };
         showScreen('lobbyScreen');
-        document.getElementById('roomCodeInput').value = 'Joined successfully!';
+        document.getElementById('roomCodeInput').value = 'Joined!';
         document.getElementById('copyCodeBtn').style.display = 'none';
         document.getElementById('startBtn').style.display = 'none';
-        updatePlayerListFromData(data.players);
+        updateLobbyFromList(data.players);
       }
 
-      if (data.type === 'player-update') {
-        updatePlayerListFromData(data.players);
+      if (data.type === 'player-list') {
+        updateLobbyFromList(data.players);
       }
 
       if (data.type === 'start') {
-        startGame(data.seed);
+        startGame(data.seed, data.realNames || []);
       }
 
       if (data.type === 'move') {
-        // Update the other real player's position / target
         const p = players.find(pl => pl.realId === data.id);
         if (p) {
           p.targetCorner = data.target;
@@ -506,8 +495,7 @@
       }
 
       if (data.type === 'state' && !isHost) {
-        // Host sends full state sometimes
-        applyHostState(data);
+        applyState(data);
       }
 
       if (data.type === 'tag') {
@@ -527,30 +515,26 @@
       }
     }
 
-    function getPublicPlayers() {
-      return Object.values(realPlayers).map(p => ({
-        name: p.name,
-        isMe: false
-      }));
-    }
-
-    function updatePlayerListFromData(list) {
+    function updateLobbyFromList(list) {
       const el = document.getElementById('playerList');
       el.innerHTML = '';
+      // show self first
+      const self = document.createElement('div');
+      self.className = 'player-item';
+      self.innerHTML = `<span>${myName}</span><span class="tag">YOU</span>`;
+      el.appendChild(self);
+
       list.forEach(p => {
+        if (p.name === myName) return;
         const div = document.createElement('div');
         div.className = 'player-item';
         div.innerHTML = `<span>${p.name}</span>`;
         el.appendChild(div);
       });
-      // add self if not present
-      const selfDiv = document.createElement('div');
-      selfDiv.className = 'player-item';
-      selfDiv.innerHTML = `<span>${myName}</span> <span class="you-tag">YOU</span>`;
-      el.prepend(selfDiv);
 
-      const aiCount = 6 - (list.length + 1);
-      for (let i = 0; i < aiCount; i++) {
+      const totalReal = list.length + (list.some(p => p.name === myName) ? 0 : 1);
+      const aiNeeded = Math.max(0, 6 - totalReal);
+      for (let i = 0; i < aiNeeded; i++) {
         const div = document.createElement('div');
         div.className = 'player-item';
         div.innerHTML = `<span style="color:#64748b">AI Player</span>`;
@@ -558,23 +542,23 @@
       }
     }
 
-    // ================== MENU BUTTONS ==================
+    // ================== BUTTONS ==================
     document.getElementById('createBtn').onclick = () => {
       myName = document.getElementById('nameInput').value.trim() || 'Player';
-      if (myName.length < 1) return alert('Enter a name');
-      initPeerHost();
+      if (!myName) return alert('Please enter your name');
+      initHost();
     };
 
     document.getElementById('joinBtn').onclick = () => {
       myName = document.getElementById('nameInput').value.trim() || 'Player';
-      if (myName.length < 1) return alert('Enter a name');
+      if (!myName) return alert('Please enter your name');
       showScreen('joinScreen');
     };
 
     document.getElementById('confirmJoinBtn').onclick = () => {
       const code = document.getElementById('codeInput').value.trim();
-      if (!code) return alert('Enter the room code');
-      initPeerJoin(code);
+      if (!code) return alert('Please paste the room code');
+      initJoin(code);
     };
 
     document.getElementById('backFromJoin').onclick = () => showScreen('menuScreen');
@@ -582,50 +566,51 @@
     document.getElementById('startBtn').onclick = () => {
       if (!isHost) return;
       const seed = Date.now();
-      if (conn && conn.open) {
-        conn.send({ type: 'start', seed });
-      }
-      startGame(seed);
+      const realNames = Object.values(realPlayers).map(p => p.name);
+      broadcast({ type: 'start', seed, realNames });
+      startGame(seed, realNames);
     };
 
     document.getElementById('leaveBtn').onclick = () => location.reload();
 
-    // Copy room code button
     document.getElementById('copyCodeBtn').onclick = () => {
       const input = document.getElementById('roomCodeInput');
       input.select();
-      input.setSelectionRange(0, 99999); // for mobile
+      input.setSelectionRange(0, 99999);
       navigator.clipboard.writeText(input.value).then(() => {
         const btn = document.getElementById('copyCodeBtn');
         btn.textContent = 'Copied!';
-        setTimeout(() => { btn.textContent = 'Copy Code'; }, 1500);
+        setTimeout(() => btn.textContent = 'Copy Code', 1500);
       }).catch(() => {
-        // Fallback for older browsers
-        input.select();
         document.execCommand('copy');
         const btn = document.getElementById('copyCodeBtn');
         btn.textContent = 'Copied!';
-        setTimeout(() => { btn.textContent = 'Copy Code'; }, 1500);
+        setTimeout(() => btn.textContent = 'Copy Code', 1500);
       });
     };
 
-    // ================== GAME LOGIC ==================
-    function startGame(seed) {
+    // ================== GAME ==================
+    function startGame(seed, realNames) {
       gameStarted = true;
       gameOver = false;
       alive = 6;
       showScreen('gameScreen');
 
-      // Create 6 players
+      // Build players: real ones first, then AI
       players = [];
-      const realList = Object.values(realPlayers);
+      const names = realNames && realNames.length ? realNames : Object.values(realPlayers).map(p => p.name);
+      const myIndex = names.indexOf(myName);
+
       for (let i = 0; i < 6; i++) {
         const pos = CORNER_POS[i];
-        const isReal = i < realList.length;
-        const real = isReal ? realList[i] : null;
+        const isReal = i < names.length;
+        const name = isReal ? names[i] : ('AI-' + (i + 1));
+        const isYou = isReal && name === myName;
+        const isFriend = isReal && !isYou;
+
         players.push({
           id: i,
-          name: real ? real.name : 'AI-' + (i + 1),
+          name: name,
           x: pos.x,
           y: pos.y,
           cornerId: i,
@@ -633,10 +618,19 @@
           speed: 0,
           isMoving: false,
           isOut: false,
-          isYou: real ? real.isMe : false,
-          isFriend: real ? !real.isMe : false,
-          realId: real ? (real.isMe ? myId : Object.keys(realPlayers).find(k => realPlayers[k] === real)) : null,
-          isAI: !isReal
+          isYou: isYou,
+          isFriend: isFriend,
+          isAI: !isReal,
+          realId: isYou ? myId : null
+        });
+      }
+
+      // Assign realId for friends (simplified)
+      if (isHost) {
+        let ri = 0;
+        Object.keys(realPlayers).forEach(pid => {
+          if (players[ri]) players[ri].realId = pid;
+          ri++;
         });
       }
 
@@ -645,19 +639,15 @@
       clickTimes = [];
       renderCorners();
       renderAll();
-      document.getElementById('status').textContent = 'Click corners to run!';
+      document.getElementById('status').textContent = 'Tap corners to run!';
       updateScore();
 
-      // Start loops
-      if (isHost) {
-        startHostLoop();
-      } else {
-        startClientLoop();
-      }
+      if (isHost) startHostLoop();
+      else startClientLoop();
     }
 
     function updateScore() {
-      document.getElementById('scoreBoard').textContent = `Alive: ${alive}`;
+      document.getElementById('scoreBoard').textContent = 'Alive: ' + alive;
     }
 
     function renderCorners() {
@@ -666,8 +656,8 @@
       CORNER_POS.forEach(c => {
         const div = document.createElement('div');
         div.className = 'corner';
-        div.style.left = `calc(${c.x}% - 30px)`;
-        div.style.top = `calc(${c.y}% - 30px)`;
+        div.style.left = `calc(${c.x}% - 28px)`;
+        div.style.top = `calc(${c.y}% - 28px)`;
         div.dataset.id = c.id;
         div.addEventListener('click', () => onCornerClick(c.id));
         arena.appendChild(div);
@@ -689,16 +679,17 @@
         if (p.isOut) cls += ' out';
         if (p.isMoving) cls += ' moving';
         div.className = cls;
-        div.style.left = `calc(${p.x}% - 25px)`;
-        div.style.top = `calc(${p.y}% - 25px)`;
-        div.innerHTML = `<div>${p.isYou ? 'YOU' : (p.isFriend ? 'FRIEND' : p.id+1)}</div><div class="name">${p.name}</div>`;
+        div.style.left = `calc(${p.x}% - 24px)`;
+        div.style.top = `calc(${p.y}% - 24px)`;
+        const label = p.isYou ? 'YOU' : (p.isFriend ? 'P' : (p.id + 1));
+        div.innerHTML = `<div>${label}</div><div class="name">${p.name}</div>`;
         document.getElementById('arena').appendChild(div);
       });
 
       const hEl = document.getElementById('hunter');
       if (hEl) {
-        hEl.style.left = `calc(${hunter.x}% - 33px)`;
-        hEl.style.top = `calc(${hunter.y}% - 33px)`;
+        hEl.style.left = `calc(${hunter.x}% - 31px)`;
+        hEl.style.top = `calc(${hunter.y}% - 31px)`;
         hEl.style.transform = `rotate(${hunter.angle}deg)`;
       }
 
@@ -715,7 +706,7 @@
       const now = performance.now();
       clickTimes.push(now);
       clickTimes = clickTimes.filter(t => now - t < 800);
-      const newSpeed = Math.min(2.8, 0.35 + clickTimes.length * 0.35);
+      const newSpeed = Math.min(2.8, 0.35 + clickTimes.length * 0.38);
 
       if (me.targetCorner === cornerId && me.isMoving) {
         me.speed = Math.max(me.speed, newSpeed);
@@ -727,35 +718,31 @@
       }
 
       document.getElementById('speedFill').style.width = Math.min(100, (me.speed / 2.8) * 100) + '%';
-      document.getElementById('status').textContent = `Running at speed ${me.speed.toFixed(1)}`;
+      document.getElementById('status').textContent = 'Running • Speed ' + me.speed.toFixed(1);
 
-      // Send to other player
-      if (conn && conn.open) {
-        conn.send({
-          type: 'move',
-          id: myId,
-          target: cornerId,
-          speed: me.speed
-        });
-      }
+      broadcast({
+        type: 'move',
+        id: myId,
+        target: cornerId,
+        speed: me.speed
+      });
     }
 
-    // Movement
     function movePlayers(dt) {
       players.forEach(p => {
         if (p.isOut || !p.isMoving || p.targetCorner === null) return;
         const target = CORNER_POS[p.targetCorner];
         const dx = target.x - p.x;
         const dy = target.y - p.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 1.3) {
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 1.4) {
           p.x = target.x; p.y = target.y;
           p.cornerId = p.targetCorner;
           p.isMoving = false; p.speed = 0; p.targetCorner = null;
           if (p.isYou) {
             selectedTarget = null;
             document.getElementById('speedFill').style.width = '0%';
-            document.getElementById('status').textContent = 'Safe! Click another corner';
+            document.getElementById('status').textContent = 'Safe! Tap another corner';
           }
           return;
         }
@@ -765,57 +752,53 @@
       });
     }
 
-    // Host AI + Hunter
-    let aiTimer = 0;
-    let lookTimer = 0;
-    let patrol = 0;
+    // Host AI
+    let aiTimer = 0, lookTimer = 0, patrol = 0;
 
     function updateAI(dt) {
-      // Other AI players
       aiTimer += dt;
-      if (aiTimer > 1000) {
+      if (aiTimer > 950) {
         aiTimer = 0;
         players.forEach(p => {
           if (!p.isAI || p.isOut || p.isMoving) return;
-          if (Math.random() < 0.32) {
+          if (Math.random() < 0.34) {
             let nc;
             do { nc = Math.floor(Math.random() * 6); } while (nc === p.cornerId);
             p.targetCorner = nc;
             p.isMoving = true;
-            p.speed = 0.55 + Math.random() * 1.2;
+            p.speed = 0.55 + Math.random() * 1.25;
           }
         });
       }
 
-      // Hunter
       lookTimer += dt;
-      if (lookTimer > 1300 + Math.random() * 1100) {
+      if (lookTimer > 1200 + Math.random() * 1000) {
         lookTimer = 0;
         const living = players.filter(p => !p.isOut);
-        if (living.length && Math.random() < 0.6) {
+        if (living.length && Math.random() < 0.55) {
           const t = living[Math.floor(Math.random() * living.length)];
           const dx = t.x - hunter.x, dy = t.y - hunter.y;
           hunter.angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
-          if (Math.random() < 0.35) say(randomPhrase());
+          if (Math.random() < 0.4) say(randomPhrase());
         } else {
           hunter.angle = Math.random() * 360;
         }
       }
-      patrol += dt * 0.00035;
-      const tx = 50 + Math.cos(patrol) * 17;
-      const ty = 50 + Math.sin(patrol * 0.85) * 15;
+
+      patrol += dt * 0.00032;
+      const tx = 50 + Math.cos(patrol) * 16;
+      const ty = 50 + Math.sin(patrol * 0.85) * 14;
       hunter.x += (tx - hunter.x) * 0.007 * dt;
       hunter.y += (ty - hunter.y) * 0.007 * dt;
 
-      // Chase moving sometimes
       const moving = players.filter(p => p.isMoving && !p.isOut);
-      if (moving.length && Math.random() < 0.018) {
+      if (moving.length && Math.random() < 0.02) {
         const v = moving[Math.floor(Math.random() * moving.length)];
         const dx = v.x - hunter.x, dy = v.y - hunter.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 42) {
-          hunter.x += (dx / dist) * 0.85;
-          hunter.y += (dy / dist) * 0.85;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 40) {
+          hunter.x += (dx / dist) * 0.9;
+          hunter.y += (dy / dist) * 0.9;
           hunter.angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
         }
       }
@@ -823,21 +806,19 @@
 
     function checkTags() {
       const now = performance.now();
-      if (now - lastTagTime < 900) return;
+      if (now - lastTagTime < 850) return;
       players.forEach(p => {
         if (p.isOut || !p.isMoving) return;
         const dx = p.x - hunter.x, dy = p.y - hunter.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 11.5) {
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 12) {
           p.isOut = true;
           p.isMoving = false;
           alive--;
           lastTagTime = now;
           updateScore();
           say('TAGGED!');
-          if (conn && conn.open) {
-            conn.send({ type: 'tag', playerId: p.id });
-          }
+          broadcast({ type: 'tag', playerId: p.id });
           if (alive <= 1) endRound();
         }
       });
@@ -846,40 +827,36 @@
     function endRound() {
       gameOver = true;
       const winner = players.find(p => !p.isOut);
-      let msg = winner ? (winner.isYou ? '🏆 YOU WIN!' : `${winner.name} wins!`) : 'Everyone out!';
+      let msg = winner ? (winner.isYou ? '🏆 YOU WIN!' : winner.name + ' wins!') : 'Everyone out!';
       document.getElementById('status').textContent = msg;
-      if (conn && conn.open) {
-        conn.send({ type: 'round-end', message: msg });
-      }
+      broadcast({ type: 'round-end', message: msg });
     }
 
     function randomPhrase() {
-      return ['I see you...', 'Don\'t move!', 'Hmm...', 'Looking...', 'Stay there!'][Math.floor(Math.random()*5)];
+      return ['I see you...', "Don't move!", 'Hmm...', 'Looking...', 'Stay there!'][Math.floor(Math.random() * 5)];
     }
 
     function say(text) {
       const el = document.getElementById('speech');
       el.textContent = text;
-      el.style.left = `calc(${hunter.x}% - 55px)`;
-      el.style.top = `calc(${hunter.y}% - 85px)`;
+      el.style.left = `calc(${hunter.x}% - 50px)`;
+      el.style.top = `calc(${hunter.y}% - 80px)`;
       el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 1500);
+      setTimeout(() => el.classList.remove('show'), 1400);
     }
 
-    // Loops
     function startHostLoop() {
       let last = performance.now();
       function loop(now) {
         if (!gameStarted) return;
-        const dt = Math.min(30, now - last);
+        const dt = Math.min(32, now - last);
         last = now;
         if (!gameOver) {
           movePlayers(dt);
           updateAI(dt);
           checkTags();
-          // Send simplified state to client every few frames
-          if (conn && conn.open && Math.random() < 0.15) {
-            conn.send({
+          if (Math.random() < 0.12) {
+            broadcast({
               type: 'state',
               players: players.map(p => ({
                 id: p.id, x: p.x, y: p.y, isMoving: p.isMoving,
@@ -900,18 +877,16 @@
       let last = performance.now();
       function loop(now) {
         if (!gameStarted) return;
-        const dt = Math.min(30, now - last);
+        const dt = Math.min(32, now - last);
         last = now;
-        if (!gameOver) {
-          movePlayers(dt); // still move locally for smoothness
-        }
+        if (!gameOver) movePlayers(dt);
         renderAll();
         requestAnimationFrame(loop);
       }
       requestAnimationFrame(loop);
     }
 
-    function applyHostState(data) {
+    function applyState(data) {
       data.players.forEach(sp => {
         const p = players.find(pl => pl.id === sp.id);
         if (p && !p.isYou) {
