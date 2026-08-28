@@ -7,7 +7,6 @@
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-    body, .screen, .btn, .avatar, .corner, #hunter { user-select: none; }
     html, body {
       height: 100%;
       width: 100%;
@@ -19,141 +18,128 @@
     body {
       display: flex;
       flex-direction: column;
-      /* important for mobile browser bars */
       height: 100dvh;
       height: 100vh;
     }
     .screen { display: none; flex-direction: column; height: 100%; width: 100%; }
     .screen.active { display: flex; }
 
-    /* ===== MENU / LOBBY ===== */
     #menuScreen, #joinScreen, #lobbyScreen {
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      padding: 16px;
       text-align: center;
       background: radial-gradient(circle at 50% 30%, #1a1a2e 0%, #0b0b14 70%);
     }
-    h1 { font-size: 1.7rem; color: #ff6b6b; margin-bottom: 6px; }
-    .subtitle { color: #94a3b8; margin-bottom: 22px; font-size: 0.9rem; }
+    h1 { font-size: 1.6rem; color: #ff6b6b; margin-bottom: 4px; }
+    .subtitle { color: #94a3b8; margin-bottom: 18px; font-size: 0.88rem; }
     input[type="text"] {
       width: 100%;
       max-width: 320px;
-      padding: 14px 12px;
-      border-radius: 12px;
+      padding: 13px 10px;
+      border-radius: 11px;
       border: 2px solid #334155;
       background: #1e293b;
       color: #fff;
-      font-size: 0.95rem;
-      margin-bottom: 12px;
+      font-size: 0.92rem;
+      margin-bottom: 10px;
       text-align: center;
       word-break: break-all;
     }
-    #codeInput {
-      max-width: 340px;
-      font-size: 0.78rem;
-      padding: 16px 10px;
-    }
+    #codeInput { font-size: 0.75rem; padding: 15px 8px; }
     .btn {
       background: #ef4444;
       color: white;
       border: none;
-      padding: 13px 24px;
-      border-radius: 12px;
-      font-size: 0.95rem;
+      padding: 12px 22px;
+      border-radius: 11px;
+      font-size: 0.92rem;
       font-weight: 600;
       cursor: pointer;
-      margin: 5px;
-      min-width: 150px;
-      box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+      margin: 4px;
+      min-width: 140px;
     }
-    .btn.blue { background: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.3); }
-    .btn.green { background: #22c55e; box-shadow: 0 4px 12px rgba(34,197,94,0.3); }
+    .btn.blue { background: #3b82f6; }
+    .btn.green { background: #22c55e; }
     .btn:active { transform: scale(0.97); }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn:disabled { opacity: 0.4; }
 
-    #roomCodeBox { width: 100%; max-width: 340px; margin: 10px auto; }
+    #roomCodeBox { width: 100%; max-width: 340px; margin: 8px auto; }
     #roomCodeInput {
       width: 100%;
-      padding: 12px 8px;
-      border-radius: 10px;
+      padding: 11px 6px;
+      border-radius: 9px;
       border: 2px solid #facc15;
       background: #1e293b;
       color: #facc15;
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 600;
       text-align: center;
       word-break: break-all;
       user-select: text !important;
       -webkit-user-select: text !important;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     #copyCodeBtn {
       background: #facc15;
       color: #111;
       border: none;
-      padding: 11px 20px;
-      border-radius: 10px;
+      padding: 10px 18px;
+      border-radius: 9px;
       font-weight: 700;
-      font-size: 0.9rem;
-      cursor: pointer;
+      font-size: 0.88rem;
       width: 100%;
-      max-width: 200px;
+      max-width: 180px;
     }
 
-    .player-list { margin: 14px 0; text-align: left; max-width: 300px; width: 100%; }
+    .player-list { margin: 12px 0; text-align: left; max-width: 290px; width: 100%; }
     .player-item {
       background: #1e293b;
-      padding: 10px 14px;
-      border-radius: 10px;
-      margin-bottom: 6px;
+      padding: 9px 12px;
+      border-radius: 9px;
+      margin-bottom: 5px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
     }
-    .player-item .tag { font-size: 0.7rem; color: #22c55e; }
-
-    /* ===== GAME SCREEN ===== */
-    #gameScreen { background: #0b0b14; }
+    .player-item .tag { font-size: 0.68rem; color: #22c55e; }
 
     #topBar {
       flex: 0 0 auto;
-      padding: 6px 10px;
-      padding-top: calc(6px + env(safe-area-inset-top, 0px));
-      background: rgba(0,0,0,0.75);
+      padding: 5px 8px;
+      padding-top: calc(5px + env(safe-area-inset-top, 0px));
+      background: rgba(0,0,0,0.8);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       z-index: 50;
-      min-height: 36px;
     }
     #topBar .title { font-weight: 700; color: #ff6b6b; }
-    #status { flex: 1; text-align: center; color: #ffd166; padding: 0 6px; font-size: 0.78rem; }
-    #scoreBoard { color: #94a3b8; white-space: nowrap; font-size: 0.75rem; }
+    #status { flex: 1; text-align: center; color: #ffd166; font-size: 0.75rem; padding: 0 4px; }
+    #scoreBoard { color: #94a3b8; font-size: 0.72rem; }
 
     #gameArea {
       flex: 1 1 auto;
       position: relative;
       overflow: hidden;
+      min-height: 0;
       background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0b0b14 70%);
-      min-height: 0; /* critical for flex children */
     }
     #arena {
       position: absolute;
       left: 50%;
-      top: 50%;
+      top: 48%;
       transform: translate(-50%, -50%);
-      width: min(92vw, 440px);
-      height: min(92vw, 440px);
-      max-height: 62vh;
+      width: min(90vw, 400px);
+      height: min(90vw, 400px);
+      max-height: 52vh;
     }
 
     .corner {
       position: absolute;
-      width: 56px;
-      height: 56px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       border: 3px dashed #475569;
       background: rgba(30,41,59,0.75);
@@ -161,36 +147,36 @@
     }
     .corner.active-target {
       border-color: #facc15;
-      background: rgba(250,204,21,0.2);
-      box-shadow: 0 0 14px rgba(250,204,21,0.5);
+      background: rgba(250,204,21,0.22);
+      box-shadow: 0 0 12px rgba(250,204,21,0.5);
     }
 
     .avatar {
       position: absolute;
-      width: 48px;
-      height: 48px;
+      width: 46px;
+      height: 46px;
       border-radius: 50%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       z-index: 10;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.45);
       border: 3px solid rgba(255,255,255,0.25);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.4);
     }
-    .avatar .name { font-size: 0.48rem; opacity: 0.9; margin-top: -1px; max-width: 46px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .avatar .name { font-size: 0.45rem; max-width: 44px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .avatar.you { background: #22c55e; color: #052e16; border-color: #86efac; z-index: 15; }
     .avatar.friend { background: #a855f7; color: #fff; border-color: #d8b4fe; }
     .avatar.ai { background: #3b82f6; color: #fff; }
     .avatar.out { background: #475569 !important; color: #94a3b8 !important; opacity: 0.45; }
-    .avatar.moving { box-shadow: 0 0 16px rgba(56,189,248,0.9); }
+    .avatar.moving { box-shadow: 0 0 14px rgba(56,189,248,0.9); }
 
     #hunter {
       position: absolute;
-      width: 62px;
-      height: 62px;
+      width: 58px;
+      height: 58px;
       border-radius: 50%;
       background: #ef4444;
       color: white;
@@ -199,91 +185,96 @@
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       z-index: 20;
-      box-shadow: 0 0 20px rgba(239,68,68,0.65);
+      box-shadow: 0 0 18px rgba(239,68,68,0.6);
       border: 3px solid #fca5a5;
     }
-    #hunter .eyes { font-size: 0.95rem; }
-    #hunter .label { font-size: 0.48rem; }
+    #hunter .eyes { font-size: 0.9rem; }
+    #hunter .label { font-size: 0.45rem; }
 
     #speech {
       position: absolute;
       background: white;
       color: #111;
-      padding: 5px 9px;
-      border-radius: 10px;
-      font-size: 0.7rem;
+      padding: 4px 8px;
+      border-radius: 9px;
+      font-size: 0.68rem;
       font-weight: 600;
       z-index: 30;
       opacity: 0;
       transition: opacity 0.2s;
-      max-width: 120px;
+      max-width: 110px;
       text-align: center;
       pointer-events: none;
     }
     #speech.show { opacity: 1; }
 
-    /* ===== BOTTOM BAR - MOBILE FIRST ===== */
+    /* FIXED BOTTOM BAR */
     #bottomBar {
-      flex: 0 0 auto;
-      padding: 8px 12px;
-      padding-bottom: calc(12px + env(safe-area-inset-bottom, 8px));
-      background: #0f172a;
-      border-top: 2px solid #334155;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 200;
+      background: #020617;
+      border-top: 3px solid #facc15;
+      padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 6px));
       text-align: center;
-      z-index: 100;
     }
     #hint {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: #cbd5e1;
-      line-height: 1.3;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
+    }
+    #speedRow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      max-width: 340px;
+      margin: 0 auto;
     }
     #speedLabel {
-      font-size: 0.68rem;
-      color: #94a3b8;
-      margin-bottom: 2px;
-      font-weight: 600;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #facc15;
+      min-width: 48px;
     }
     #speedMeter {
-      height: 18px;
+      flex: 1;
+      height: 20px;
       background: #1e293b;
       border-radius: 10px;
       overflow: hidden;
-      margin: 0 auto 4px;
-      max-width: 300px;
-      width: 92%;
-      border: 2px solid #475569;
+      border: 2px solid #64748b;
     }
     #speedFill {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, #22c55e 0%, #facc15 55%, #ef4444 100%);
+      background: linear-gradient(90deg, #22c55e, #facc15, #ef4444);
       transition: width 0.1s linear;
       border-radius: 8px;
     }
+    #speedValue {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+      min-width: 32px;
+    }
 
-    /* Extra small phones */
+    #gameScreen { padding-bottom: 70px; }
     @media (max-height: 700px) {
-      #arena {
-        max-height: 55vh;
-        width: min(90vw, 380px);
-        height: min(90vw, 380px);
-      }
-      #hint { font-size: 0.68rem; }
-      #speedMeter { height: 16px; }
+      #arena { max-height: 48vh; width: min(88vw, 360px); height: min(88vw, 360px); }
     }
     @media (max-height: 600px) {
-      #arena { max-height: 48vh; }
-      #topBar { min-height: 32px; padding: 4px 8px; }
+      #arena { max-height: 42vh; }
       #hint { display: none; }
     }
   </style>
 </head>
 <body>
 
-  <!-- MENU -->
   <div id="menuScreen" class="screen active">
     <h1>Corner Frenzy</h1>
     <div class="subtitle">Play with friends • AI fills the rest</div>
@@ -294,30 +285,27 @@
     </div>
   </div>
 
-  <!-- JOIN -->
   <div id="joinScreen" class="screen">
     <h1>Join Room</h1>
-    <div class="subtitle">Paste the full code your friend sent</div>
+    <div class="subtitle">Paste the full code</div>
     <input type="text" id="codeInput" placeholder="Paste full room code here" />
     <button class="btn blue" id="confirmJoinBtn">Join</button>
     <button class="btn" id="backFromJoin" style="background:#475569;">Back</button>
   </div>
 
-  <!-- LOBBY -->
   <div id="lobbyScreen" class="screen">
     <h1>Room Lobby</h1>
-    <div class="subtitle">Share the code with friends</div>
+    <div class="subtitle">Share code with friends</div>
     <div id="roomCodeBox">
       <input type="text" id="roomCodeInput" readonly value="Loading..." />
       <button id="copyCodeBtn">Copy Code</button>
     </div>
     <div class="player-list" id="playerList"></div>
-    <div id="lobbyStatus" style="color:#94a3b8; font-size:0.82rem; margin:8px 0;">Waiting for players...</div>
-    <button class="btn green" id="startBtn" disabled>Start Game</button>
+    <div id="lobbyStatus" style="color:#94a3b8; font-size:0.8rem; margin:8px 0;">Waiting...</div>
+    <button class="btn green" id="startBtn">Start Game</button>
     <button class="btn" id="leaveBtn" style="background:#475569;">Leave</button>
   </div>
 
-  <!-- GAME -->
   <div id="gameScreen" class="screen">
     <div id="topBar">
       <div class="title">Corner Frenzy</div>
@@ -329,40 +317,28 @@
       <div id="speech"></div>
     </div>
     <div id="bottomBar">
-      <div id="hint">You = GREEN. Tap corners to run. Faster taps = higher speed.</div>
-      <div id="speedLabel">SPEED</div>
-      <div id="speedMeter"><div id="speedFill"></div></div>
+      <div id="hint">YOU = GREEN • Tap corners to run • Faster taps = faster speed</div>
+      <div id="speedRow">
+        <div id="speedLabel">SPEED</div>
+        <div id="speedMeter"><div id="speedFill"></div></div>
+        <div id="speedValue">0</div>
+      </div>
     </div>
   </div>
 
   <script>
-    // ================== STATE ==================
-    let myName = '';
-    let myId = null;
-    let isHost = false;
-    let peer = null;
-    let connections = [];          // support multiple friends
-    let roomCode = '';
-    let realPlayers = {};          // peerId -> {name, isMe, index}
-    let players = [];
-    let hunter = { x: 50, y: 50, angle: 0 };
-    let selectedTarget = null;
-    let clickTimes = [];
-    let alive = 6;
-    let gameOver = false;
-    let gameStarted = false;
-    let lastTagTime = 0;
+    let myName = '', myId = null, isHost = false, peer = null;
+    let connections = [];
+    let realPlayers = {};
+    let players = [], hunter = { x: 50, y: 50, angle: 0 };
+    let selectedTarget = null, clickTimes = [], alive = 6;
+    let gameOver = false, gameStarted = false, lastTagTime = 0;
 
     const CORNER_POS = [
-      { id: 0, x: 12, y: 12 },
-      { id: 1, x: 50, y: 6 },
-      { id: 2, x: 88, y: 12 },
-      { id: 3, x: 88, y: 88 },
-      { id: 4, x: 50, y: 94 },
-      { id: 5, x: 12, y: 88 }
+      { id: 0, x: 12, y: 12 }, { id: 1, x: 50, y: 6 }, { id: 2, x: 88, y: 12 },
+      { id: 3, x: 88, y: 88 }, { id: 4, x: 50, y: 94 }, { id: 5, x: 12, y: 88 }
     ];
 
-    // ================== UI ==================
     function showScreen(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
@@ -375,37 +351,31 @@
       entries.forEach(p => {
         const div = document.createElement('div');
         div.className = 'player-item';
-        div.innerHTML = `<span>${p.name}</span>${p.isMe ? '<span class="tag">YOU</span>' : ''}`;
+        div.innerHTML = '<span>' + p.name + '</span>' + (p.isMe ? '<span class="tag">YOU</span>' : '');
         list.appendChild(div);
       });
-      const aiNeeded = Math.max(0, 6 - entries.length);
-      for (let i = 0; i < aiNeeded; i++) {
+      const ai = Math.max(0, 6 - entries.length);
+      for (let i = 0; i < ai; i++) {
         const div = document.createElement('div');
         div.className = 'player-item';
-        div.innerHTML = `<span style="color:#64748b">AI Player</span>`;
+        div.innerHTML = '<span style="color:#64748b">AI Player</span>';
         list.appendChild(div);
       }
-      const status = document.getElementById('lobbyStatus');
-      status.textContent = entries.length >= 1
-        ? `${entries.length} player(s) ready • AI will fill the rest`
-        : 'Waiting for players...';
-      document.getElementById('startBtn').disabled = !(isHost && entries.length >= 1);
+      document.getElementById('lobbyStatus').textContent = entries.length + ' real player(s) • AI will fill the rest';
+      document.getElementById('startBtn').disabled = !isHost;
+      document.getElementById('startBtn').style.display = isHost ? 'inline-block' : 'none';
     }
 
     function broadcast(data) {
-      connections.forEach(c => {
-        if (c.open) c.send(data);
-      });
+      connections.forEach(c => { if (c && c.open) c.send(data); });
     }
 
-    // ================== PEER ==================
     function initHost() {
       peer = new Peer();
       peer.on('open', id => {
         myId = id;
-        roomCode = id;
         document.getElementById('roomCodeInput').value = id;
-        realPlayers[id] = { name: myName, isMe: true, index: 0 };
+        realPlayers[id] = { name: myName, isMe: true };
         isHost = true;
         updateLobby();
         showScreen('lobbyScreen');
@@ -416,7 +386,7 @@
       });
       peer.on('error', e => {
         console.error(e);
-        alert('Error creating room. Please refresh and try again.');
+        alert('Room error. Please refresh and try again.');
       });
     }
 
@@ -424,67 +394,52 @@
       peer = new Peer();
       peer.on('open', id => {
         myId = id;
-        const c = peer.connect(hostId, { reliable: true });
+        const c = peer.connect(hostId.trim(), { reliable: true });
         connections.push(c);
         setupConn(c);
       });
       peer.on('error', e => {
-        alert('Could not join. Check the code and try again.');
+        console.error(e);
+        alert('Could not join. Check the code or try again.');
         showScreen('menuScreen');
       });
     }
 
     function setupConn(c) {
       c.on('open', () => {
-        if (!isHost) {
-          c.send({ type: 'join', name: myName, id: myId });
-        }
+        if (!isHost) c.send({ type: 'join', name: myName, id: myId });
       });
       c.on('data', data => handleData(data, c));
-      c.on('close', () => {
-        // simple: reload on disconnect for now
-        if (gameStarted) {
-          alert('A player disconnected');
-        }
-      });
+      c.on('close', () => {});
+      c.on('error', () => {});
     }
 
     function handleData(data, fromConn) {
       if (data.type === 'join' && isHost) {
-        // new friend joined
-        const idx = Object.keys(realPlayers).length;
-        realPlayers[data.id] = { name: data.name, isMe: false, index: idx };
-        // welcome the new player
+        realPlayers[data.id] = { name: data.name, isMe: false };
         fromConn.send({
           type: 'welcome',
-          yourName: data.name,
-          players: Object.values(realPlayers).map(p => ({ name: p.name, isMe: false }))
+          players: Object.values(realPlayers).map(p => ({ name: p.name }))
         });
-        // tell everyone the updated list
         broadcast({
           type: 'player-list',
           players: Object.values(realPlayers).map(p => ({ name: p.name }))
         });
         updateLobby();
       }
-
       if (data.type === 'welcome' && !isHost) {
-        realPlayers[myId] = { name: myName, isMe: true, index: 0 };
+        realPlayers[myId] = { name: myName, isMe: true };
         showScreen('lobbyScreen');
-        document.getElementById('roomCodeInput').value = 'Joined!';
+        document.getElementById('roomCodeInput').value = 'Joined successfully';
         document.getElementById('copyCodeBtn').style.display = 'none';
-        document.getElementById('startBtn').style.display = 'none';
         updateLobbyFromList(data.players);
       }
-
       if (data.type === 'player-list') {
         updateLobbyFromList(data.players);
       }
-
       if (data.type === 'start') {
-        startGame(data.seed, data.realNames || []);
+        startGame(data.realNames || []);
       }
-
       if (data.type === 'move') {
         const p = players.find(pl => pl.realId === data.id);
         if (p) {
@@ -493,11 +448,7 @@
           p.speed = data.speed;
         }
       }
-
-      if (data.type === 'state' && !isHost) {
-        applyState(data);
-      }
-
+      if (data.type === 'state' && !isHost) applyState(data);
       if (data.type === 'tag') {
         const p = players.find(pl => pl.id === data.playerId);
         if (p) {
@@ -508,7 +459,6 @@
           say('TAGGED!');
         }
       }
-
       if (data.type === 'round-end') {
         gameOver = true;
         document.getElementById('status').textContent = data.message;
@@ -518,114 +468,84 @@
     function updateLobbyFromList(list) {
       const el = document.getElementById('playerList');
       el.innerHTML = '';
-      // show self first
       const self = document.createElement('div');
       self.className = 'player-item';
-      self.innerHTML = `<span>${myName}</span><span class="tag">YOU</span>`;
+      self.innerHTML = '<span>' + myName + '</span><span class="tag">YOU</span>';
       el.appendChild(self);
-
       list.forEach(p => {
         if (p.name === myName) return;
         const div = document.createElement('div');
         div.className = 'player-item';
-        div.innerHTML = `<span>${p.name}</span>`;
+        div.innerHTML = '<span>' + p.name + '</span>';
         el.appendChild(div);
       });
-
-      const totalReal = list.length + (list.some(p => p.name === myName) ? 0 : 1);
-      const aiNeeded = Math.max(0, 6 - totalReal);
-      for (let i = 0; i < aiNeeded; i++) {
+      const total = list.length + (list.some(p => p.name === myName) ? 0 : 1);
+      for (let i = 0; i < Math.max(0, 6 - total); i++) {
         const div = document.createElement('div');
         div.className = 'player-item';
-        div.innerHTML = `<span style="color:#64748b">AI Player</span>`;
+        div.innerHTML = '<span style="color:#64748b">AI Player</span>';
         el.appendChild(div);
       }
+      document.getElementById('lobbyStatus').textContent = total + ' real player(s) • AI will fill the rest';
+      document.getElementById('startBtn').style.display = 'none';
     }
 
-    // ================== BUTTONS ==================
     document.getElementById('createBtn').onclick = () => {
       myName = document.getElementById('nameInput').value.trim() || 'Player';
-      if (!myName) return alert('Please enter your name');
       initHost();
     };
-
     document.getElementById('joinBtn').onclick = () => {
       myName = document.getElementById('nameInput').value.trim() || 'Player';
-      if (!myName) return alert('Please enter your name');
       showScreen('joinScreen');
     };
-
     document.getElementById('confirmJoinBtn').onclick = () => {
       const code = document.getElementById('codeInput').value.trim();
-      if (!code) return alert('Please paste the room code');
+      if (!code) return alert('Paste the room code');
       initJoin(code);
     };
-
     document.getElementById('backFromJoin').onclick = () => showScreen('menuScreen');
-
     document.getElementById('startBtn').onclick = () => {
       if (!isHost) return;
-      const seed = Date.now();
       const realNames = Object.values(realPlayers).map(p => p.name);
-      broadcast({ type: 'start', seed, realNames });
-      startGame(seed, realNames);
+      broadcast({ type: 'start', realNames: realNames });
+      startGame(realNames);
     };
-
     document.getElementById('leaveBtn').onclick = () => location.reload();
-
     document.getElementById('copyCodeBtn').onclick = () => {
       const input = document.getElementById('roomCodeInput');
       input.select();
-      input.setSelectionRange(0, 99999);
       navigator.clipboard.writeText(input.value).then(() => {
         const btn = document.getElementById('copyCodeBtn');
         btn.textContent = 'Copied!';
-        setTimeout(() => btn.textContent = 'Copy Code', 1500);
+        setTimeout(() => btn.textContent = 'Copy Code', 1400);
       }).catch(() => {
         document.execCommand('copy');
         const btn = document.getElementById('copyCodeBtn');
         btn.textContent = 'Copied!';
-        setTimeout(() => btn.textContent = 'Copy Code', 1500);
+        setTimeout(() => btn.textContent = 'Copy Code', 1400);
       });
     };
 
-    // ================== GAME ==================
-    function startGame(seed, realNames) {
+    function startGame(realNames) {
       gameStarted = true;
       gameOver = false;
       alive = 6;
       showScreen('gameScreen');
 
-      // Build players: real ones first, then AI
       players = [];
-      const names = realNames && realNames.length ? realNames : Object.values(realPlayers).map(p => p.name);
-      const myIndex = names.indexOf(myName);
-
+      const names = realNames && realNames.length ? realNames : [myName];
       for (let i = 0; i < 6; i++) {
         const pos = CORNER_POS[i];
         const isReal = i < names.length;
-        const name = isReal ? names[i] : ('AI-' + (i + 1));
+        const name = isReal ? names[i] : 'AI-' + (i + 1);
         const isYou = isReal && name === myName;
-        const isFriend = isReal && !isYou;
-
         players.push({
-          id: i,
-          name: name,
-          x: pos.x,
-          y: pos.y,
-          cornerId: i,
-          targetCorner: null,
-          speed: 0,
-          isMoving: false,
-          isOut: false,
-          isYou: isYou,
-          isFriend: isFriend,
-          isAI: !isReal,
+          id: i, name: name, x: pos.x, y: pos.y, cornerId: i,
+          targetCorner: null, speed: 0, isMoving: false, isOut: false,
+          isYou: isYou, isFriend: isReal && !isYou, isAI: !isReal,
           realId: isYou ? myId : null
         });
       }
-
-      // Assign realId for friends (simplified)
       if (isHost) {
         let ri = 0;
         Object.keys(realPlayers).forEach(pid => {
@@ -641,7 +561,6 @@
       renderAll();
       document.getElementById('status').textContent = 'Tap corners to run!';
       updateScore();
-
       if (isHost) startHostLoop();
       else startClientLoop();
     }
@@ -656,15 +575,15 @@
       CORNER_POS.forEach(c => {
         const div = document.createElement('div');
         div.className = 'corner';
-        div.style.left = `calc(${c.x}% - 28px)`;
-        div.style.top = `calc(${c.y}% - 28px)`;
+        div.style.left = 'calc(' + c.x + '% - 26px)';
+        div.style.top = 'calc(' + c.y + '% - 26px)';
         div.dataset.id = c.id;
         div.addEventListener('click', () => onCornerClick(c.id));
         arena.appendChild(div);
       });
       const h = document.createElement('div');
       h.id = 'hunter';
-      h.innerHTML = `<div class="eyes">👀</div><div class="label">HUNTER</div>`;
+      h.innerHTML = '<div class="eyes">👀</div><div class="label">HUNTER</div>';
       arena.appendChild(h);
     }
 
@@ -679,20 +598,17 @@
         if (p.isOut) cls += ' out';
         if (p.isMoving) cls += ' moving';
         div.className = cls;
-        div.style.left = `calc(${p.x}% - 24px)`;
-        div.style.top = `calc(${p.y}% - 24px)`;
-        const label = p.isYou ? 'YOU' : (p.isFriend ? 'P' : (p.id + 1));
-        div.innerHTML = `<div>${label}</div><div class="name">${p.name}</div>`;
+        div.style.left = 'calc(' + p.x + '% - 23px)';
+        div.style.top = 'calc(' + p.y + '% - 23px)';
+        div.innerHTML = '<div>' + (p.isYou ? 'YOU' : (p.isFriend ? 'P' : (p.id+1))) + '</div><div class="name">' + p.name + '</div>';
         document.getElementById('arena').appendChild(div);
       });
-
       const hEl = document.getElementById('hunter');
       if (hEl) {
-        hEl.style.left = `calc(${hunter.x}% - 31px)`;
-        hEl.style.top = `calc(${hunter.y}% - 31px)`;
-        hEl.style.transform = `rotate(${hunter.angle}deg)`;
+        hEl.style.left = 'calc(' + hunter.x + '% - 29px)';
+        hEl.style.top = 'calc(' + hunter.y + '% - 29px)';
+        hEl.style.transform = 'rotate(' + hunter.angle + 'deg)';
       }
-
       document.querySelectorAll('.corner').forEach(c => {
         c.classList.toggle('active-target', selectedTarget !== null && +c.dataset.id === selectedTarget);
       });
@@ -717,24 +633,20 @@
         selectedTarget = cornerId;
       }
 
-      document.getElementById('speedFill').style.width = Math.min(100, (me.speed / 2.8) * 100) + '%';
-      document.getElementById('status').textContent = 'Running • Speed ' + me.speed.toFixed(1);
+      const pct = Math.min(100, (me.speed / 2.8) * 100);
+      document.getElementById('speedFill').style.width = pct + '%';
+      document.getElementById('speedValue').textContent = me.speed.toFixed(1);
+      document.getElementById('status').textContent = 'Running...';
 
-      broadcast({
-        type: 'move',
-        id: myId,
-        target: cornerId,
-        speed: me.speed
-      });
+      broadcast({ type: 'move', id: myId, target: cornerId, speed: me.speed });
     }
 
     function movePlayers(dt) {
       players.forEach(p => {
         if (p.isOut || !p.isMoving || p.targetCorner === null) return;
         const target = CORNER_POS[p.targetCorner];
-        const dx = target.x - p.x;
-        const dy = target.y - p.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dx = target.x - p.x, dy = target.y - p.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
         if (dist < 1.4) {
           p.x = target.x; p.y = target.y;
           p.cornerId = p.targetCorner;
@@ -742,6 +654,7 @@
           if (p.isYou) {
             selectedTarget = null;
             document.getElementById('speedFill').style.width = '0%';
+            document.getElementById('speedValue').textContent = '0';
             document.getElementById('status').textContent = 'Safe! Tap another corner';
           }
           return;
@@ -752,9 +665,7 @@
       });
     }
 
-    // Host AI
     let aiTimer = 0, lookTimer = 0, patrol = 0;
-
     function updateAI(dt) {
       aiTimer += dt;
       if (aiTimer > 950) {
@@ -766,39 +677,32 @@
             do { nc = Math.floor(Math.random() * 6); } while (nc === p.cornerId);
             p.targetCorner = nc;
             p.isMoving = true;
-            p.speed = 0.55 + Math.random() * 1.25;
+            p.speed = 0.55 + Math.random() * 1.2;
           }
         });
       }
-
       lookTimer += dt;
       if (lookTimer > 1200 + Math.random() * 1000) {
         lookTimer = 0;
         const living = players.filter(p => !p.isOut);
         if (living.length && Math.random() < 0.55) {
           const t = living[Math.floor(Math.random() * living.length)];
-          const dx = t.x - hunter.x, dy = t.y - hunter.y;
-          hunter.angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
-          if (Math.random() < 0.4) say(randomPhrase());
-        } else {
-          hunter.angle = Math.random() * 360;
-        }
+          hunter.angle = Math.atan2(t.y - hunter.y, t.x - hunter.x) * 180 / Math.PI + 90;
+          if (Math.random() < 0.4) say(['I see you...', "Don't move!", 'Hmm...', 'Looking...'][Math.floor(Math.random()*4)]);
+        } else hunter.angle = Math.random() * 360;
       }
-
       patrol += dt * 0.00032;
-      const tx = 50 + Math.cos(patrol) * 16;
-      const ty = 50 + Math.sin(patrol * 0.85) * 14;
-      hunter.x += (tx - hunter.x) * 0.007 * dt;
-      hunter.y += (ty - hunter.y) * 0.007 * dt;
+      hunter.x += (50 + Math.cos(patrol) * 15 - hunter.x) * 0.007 * dt;
+      hunter.y += (50 + Math.sin(patrol * 0.85) * 13 - hunter.y) * 0.007 * dt;
 
       const moving = players.filter(p => p.isMoving && !p.isOut);
       if (moving.length && Math.random() < 0.02) {
         const v = moving[Math.floor(Math.random() * moving.length)];
         const dx = v.x - hunter.x, dy = v.y - hunter.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 40) {
-          hunter.x += (dx / dist) * 0.9;
-          hunter.y += (dy / dist) * 0.9;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 38) {
+          hunter.x += (dx / dist) * 0.85;
+          hunter.y += (dy / dist) * 0.85;
           hunter.angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
         }
       }
@@ -809,8 +713,7 @@
       if (now - lastTagTime < 850) return;
       players.forEach(p => {
         if (p.isOut || !p.isMoving) return;
-        const dx = p.x - hunter.x, dy = p.y - hunter.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dist = Math.sqrt((p.x - hunter.x)**2 + (p.y - hunter.y)**2);
         if (dist < 12) {
           p.isOut = true;
           p.isMoving = false;
@@ -827,22 +730,18 @@
     function endRound() {
       gameOver = true;
       const winner = players.find(p => !p.isOut);
-      let msg = winner ? (winner.isYou ? '🏆 YOU WIN!' : winner.name + ' wins!') : 'Everyone out!';
+      const msg = winner ? (winner.isYou ? 'YOU WIN!' : winner.name + ' wins!') : 'Everyone out!';
       document.getElementById('status').textContent = msg;
       broadcast({ type: 'round-end', message: msg });
-    }
-
-    function randomPhrase() {
-      return ['I see you...', "Don't move!", 'Hmm...', 'Looking...', 'Stay there!'][Math.floor(Math.random() * 5)];
     }
 
     function say(text) {
       const el = document.getElementById('speech');
       el.textContent = text;
-      el.style.left = `calc(${hunter.x}% - 50px)`;
-      el.style.top = `calc(${hunter.y}% - 80px)`;
+      el.style.left = 'calc(' + hunter.x + '% - 45px)';
+      el.style.top = 'calc(' + hunter.y + '% - 75px)';
       el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 1400);
+      setTimeout(() => el.classList.remove('show'), 1300);
     }
 
     function startHostLoop() {
@@ -863,7 +762,7 @@
                 isOut: p.isOut, targetCorner: p.targetCorner, speed: p.speed
               })),
               hunter: { x: hunter.x, y: hunter.y, angle: hunter.angle },
-              alive
+              alive: alive
             });
           }
         }
