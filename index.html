@@ -1,797 +1,805 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Corner Frenzy</title>
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; width: 100%; overflow: hidden; background: #0b0b14; font-family: system-ui, -apple-system, sans-serif; color: #fff; }
-    body { display: flex; flex-direction: column; height: 100dvh; height: 100vh; }
-    .screen { display: none; flex-direction: column; height: 100%; width: 100%; }
-    .screen.active { display: flex; }
-
-    #menuScreen, #joinScreen, #lobbyScreen, #levelScreen {
-      justify-content: center; align-items: center; padding: 16px; text-align: center;
-      background: radial-gradient(circle at 50% 30%, #1a1a2e 0%, #0b0b14 70%);
-    }
-    h1 { font-size: 1.6rem; color: #ff6b6b; margin-bottom: 4px; }
-    .subtitle { color: #94a3b8; margin-bottom: 16px; font-size: 0.88rem; }
-    input[type="text"] {
-      width: 100%; max-width: 320px; padding: 13px 10px; border-radius: 11px;
-      border: 2px solid #334155; background: #1e293b; color: #fff; font-size: 0.92rem;
-      margin-bottom: 10px; text-align: center; word-break: break-all;
-    }
-    #codeInput { font-size: 0.75rem; padding: 15px 8px; }
-    .btn {
-      background: #ef4444; color: white; border: none; padding: 12px 22px; border-radius: 11px;
-      font-size: 0.92rem; font-weight: 600; cursor: pointer; margin: 4px; min-width: 140px;
-    }
-    .btn.blue { background: #3b82f6; }
-    .btn.green { background: #22c55e; }
-    .btn.yellow { background: #f59e0b; color: #111; }
-    .btn:active { transform: scale(0.97); }
-    .btn:disabled { opacity: 0.4; }
-
-    #roomCodeBox { width: 100%; max-width: 340px; margin: 8px auto; }
-    #roomCodeInput {
-      width: 100%; padding: 11px 6px; border-radius: 9px; border: 2px solid #facc15;
-      background: #1e293b; color: #facc15; font-size: 0.68rem; font-weight: 600;
-      text-align: center; word-break: break-all; user-select: text !important; -webkit-user-select: text !important; margin-bottom: 6px;
-    }
-    #copyCodeBtn { background: #facc15; color: #111; border: none; padding: 10px 18px; border-radius: 9px; font-weight: 700; font-size: 0.88rem; width: 100%; max-width: 180px; }
-
-    .player-list { margin: 12px 0; text-align: left; max-width: 290px; width: 100%; }
-    .player-item { background: #1e293b; padding: 9px 12px; border-radius: 9px; margin-bottom: 5px; display: flex; justify-content: space-between; font-size: 0.88rem; }
-    .player-item .tag { font-size: 0.68rem; color: #22c55e; }
-
-    #topBar {
-      flex: 0 0 auto; padding: 5px 8px; padding-top: calc(5px + env(safe-area-inset-top, 0px));
-      background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; z-index: 50;
-    }
-    #topBar .title { font-weight: 700; color: #ff6b6b; }
-    #status { flex: 1; text-align: center; color: #ffd166; font-size: 0.75rem; padding: 0 4px; }
-    #scoreBoard { color: #94a3b8; font-size: 0.72rem; }
-
-    #gameArea { flex: 1 1 auto; position: relative; overflow: hidden; min-height: 0; background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0b0b14 70%); }
-    #arena {
-      position: absolute; left: 50%; top: 47%; transform: translate(-50%, -50%);
-      width: min(92vw, 420px); height: min(92vw, 420px); max-height: 54vh;
-    }
-
-    .corner {
-      position: absolute; width: 54px; height: 54px; border-radius: 50%;
-      border: 3px dashed #475569; background: rgba(30,41,59,0.75); z-index: 2;
-    }
-    .corner.active-target { border-color: #facc15; background: rgba(250,204,21,0.25); box-shadow: 0 0 14px rgba(250,204,21,0.55); }
-
-    .avatar {
-      position: absolute; width: 48px; height: 48px; border-radius: 50%;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 0.75rem; z-index: 10; border: 3px solid rgba(255,255,255,0.25);
-      box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-    }
-    .avatar .name { font-size: 0.45rem; max-width: 46px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .avatar.you { background: #22c55e; color: #052e16; border-color: #86efac; z-index: 15; }
-    .avatar.friend { background: #a855f7; color: #fff; border-color: #d8b4fe; }
-    .avatar.ai { background: #3b82f6; color: #fff; }
-    .avatar.out { background: #475569 !important; color: #94a3b8 !important; opacity: 0.45; }
-    .avatar.moving { box-shadow: 0 0 16px rgba(56,189,248,0.95); }
-    .avatar.displaced { box-shadow: 0 0 18px rgba(239,68,68,0.9); animation: shake 0.4s; }
-    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
-
-    #hunter {
-      position: absolute; width: 64px; height: 64px; border-radius: 50%;
-      background: #ef4444; color: white; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;
-      z-index: 20; box-shadow: 0 0 22px rgba(239,68,68,0.7); border: 3px solid #fca5a5;
-    }
-    #hunter .eyes { font-size: 1rem; }
-    #hunter .label { font-size: 0.45rem; }
-
-    #speech {
-      position: absolute; background: white; color: #111; padding: 4px 8px; border-radius: 9px;
-      font-size: 0.68rem; font-weight: 600; z-index: 30; opacity: 0; transition: opacity 0.2s;
-      max-width: 110px; text-align: center; pointer-events: none;
-    }
-    #speech.show { opacity: 1; }
-
-    #bottomBar {
-      position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
-      background: #020617; border-top: 3px solid #facc15;
-      padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 6px)); text-align: center;
-    }
-    #hint { font-size: 0.68rem; color: #cbd5e1; margin-bottom: 4px; }
-    #speedRow { display: flex; align-items: center; justify-content: center; gap: 8px; max-width: 340px; margin: 0 auto; }
-    #speedLabel { font-size: 0.72rem; font-weight: 700; color: #facc15; min-width: 48px; }
-    #speedMeter { flex: 1; height: 20px; background: #1e293b; border-radius: 10px; overflow: hidden; border: 2px solid #64748b; }
-    #speedFill { height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #facc15, #ef4444); transition: width 0.1s linear; border-radius: 8px; }
-    #speedValue { font-size: 0.75rem; font-weight: 700; color: #fff; min-width: 32px; }
-
-    #gameScreen { padding-bottom: 72px; }
-    @media (max-height: 700px) { #arena { max-height: 48vh; width: min(88vw, 360px); height: min(88vw, 360px); } }
-    @media (max-height: 600px) { #arena { max-height: 42vh; } #hint { display: none; } }
-
-    .level-btn { display: block; width: 100%; max-width: 260px; margin: 8px auto; padding: 14px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Corner Frenzy</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: #0f172a;
+    color: #e2e8f0;
+    font-family: system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    height: 100dvh;
+    width: 100vw;
+    touch-action: manipulation;
+  }
+  #lobby {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 20px;
+    gap: 14px;
+  }
+  h1 { font-size: 1.8rem; color: #38bdf8; margin-bottom: 8px; text-align: center; }
+  input, button {
+    font-size: 16px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: none;
+    width: 100%;
+    max-width: 300px;
+  }
+  input { background: #1e293b; color: #fff; border: 1px solid #334155; }
+  button {
+    background: #0ea5e9;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  button:active { transform: scale(0.97); }
+  button.secondary { background: #334155; }
+  button.danger { background: #ef4444; }
+  button.success { background: #22c55e; }
+  .row { display: flex; gap: 8px; width: 100%; max-width: 300px; }
+  .row input { flex: 1; }
+  #roomInfo {
+    background: #1e293b;
+    padding: 12px 16px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+    display: none;
+  }
+  #roomCodeBox {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: #fbbf24;
+    margin: 8px 0;
+    user-select: all;
+  }
+  #playerList { margin-top: 8px; font-size: 0.9rem; color: #94a3b8; }
+  #game {
+    display: none;
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+  #arena {
+    position: absolute;
+    inset: 0 0 70px 0;
+    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 70%);
+  }
+  .pad {
+    position: absolute;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #1e3a5f;
+    border: 3px solid #38bdf8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #7dd3fc;
+    z-index: 5;
+    cursor: pointer;
+  }
+  .pad.occupied { border-color: #94a3b8; }
+  .avatar {
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    z-index: 10;
+    pointer-events: none;
+    transition: left 0.05s linear, top 0.05s linear;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .avatar.you { background: #22c55e; border: 2px solid #86efac; }
+  .avatar.friend { background: #a855f7; border: 2px solid #d8b4fe; }
+  .avatar.ai { background: #3b82f6; border: 2px solid #93c5fd; }
+  .avatar.displaced { animation: pulse 0.4s infinite; }
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  #hunter {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #ef4444;
+    border: 3px solid #fca5a5;
+    z-index: 8;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 0 16px rgba(239,68,68,0.6);
+    transition: left 0.08s linear, top 0.08s linear;
+  }
+  #hud {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: #0f172a;
+    border-top: 2px solid #1e293b;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 12px;
+    z-index: 20;
+  }
+  #speedWrap {
+    flex: 1;
+  }
+  #speedLabel {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 2px;
+  }
+  #speedBarBg {
+    height: 18px;
+    background: #1e293b;
+    border-radius: 9px;
+    overflow: hidden;
+  }
+  #speedBar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #22c55e, #fbbf24, #ef4444);
+    border-radius: 9px;
+    transition: width 0.1s;
+  }
+  #levelBadge {
+    background: #1e293b;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fbbf24;
+    white-space: nowrap;
+  }
+  #msg {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15,23,42,0.9);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 30;
+    pointer-events: none;
+    max-width: 90%;
+    text-align: center;
+  }
+  #levelSelect {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .levelBtn {
+    max-width: 260px;
+  }
+  #toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #22c55e;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    z-index: 50;
+    display: none;
+  }
+</style>
 </head>
 <body>
 
-  <div id="menuScreen" class="screen active">
-    <h1>Corner Frenzy</h1>
-    <div class="subtitle">Play with friends • AI fills the rest</div>
-    <input type="text" id="nameInput" placeholder="Enter your name" maxlength="12" />
-    <div>
-      <button class="btn green" id="createBtn">Create Room</button>
-      <button class="btn blue" id="joinBtn">Join Room</button>
-    </div>
+<!-- LOBBY -->
+<div id="lobby">
+  <h1>Corner Frenzy</h1>
+  <input id="nameInput" type="text" placeholder="Your name" maxlength="12" value="">
+  <button id="btnSolo" class="success">Play Solo (vs AI)</button>
+  <button id="btnCreate">Create Room</button>
+  <div class="row">
+    <input id="codeInput" type="text" placeholder="Room code" maxlength="8">
+    <button id="btnJoin" class="secondary">Join</button>
   </div>
 
-  <div id="joinScreen" class="screen">
-    <h1>Join Room</h1>
-    <div class="subtitle">Paste the full code</div>
-    <input type="text" id="codeInput" placeholder="Paste full room code here" />
-    <button class="btn blue" id="confirmJoinBtn">Join</button>
-    <button class="btn" id="backFromJoin" style="background:#475569;">Back</button>
-  </div>
-
-  <div id="lobbyScreen" class="screen">
-    <h1>Room Lobby</h1>
-    <div class="subtitle">Share code with friends</div>
-    <div id="roomCodeBox">
-      <input type="text" id="roomCodeInput" readonly value="Loading..." />
-      <button id="copyCodeBtn">Copy Code</button>
-    </div>
-    <div class="player-list" id="playerList"></div>
-    <div id="lobbyStatus" style="color:#94a3b8; font-size:0.8rem; margin:8px 0;">Waiting...</div>
-    <button class="btn green" id="startBtn">Start Game</button>
-    <button class="btn" id="leaveBtn" style="background:#475569;">Leave</button>
-  </div>
-
-  <div id="levelScreen" class="screen">
-    <h1>Select Level</h1>
-    <div class="subtitle">Higher level = harder hunter</div>
-    <button class="btn green level-btn" data-level="1">Level 1 - Calm</button>
-    <button class="btn yellow level-btn" data-level="2">Level 2 - Displacement</button>
-    <button class="btn" data-level="3" style="background:#ef4444;">Level 3 - Furious Hunter</button>
-    <button class="btn" id="backLevel" style="background:#475569; margin-top:12px;">Back</button>
-  </div>
-
-  <div id="gameScreen" class="screen">
-    <div id="topBar">
-      <div class="title">Corner Frenzy</div>
-      <div id="status">Get ready...</div>
-      <div id="scoreBoard">Alive: 6</div>
-    </div>
-    <div id="gameArea">
-      <div id="arena"></div>
-      <div id="speech"></div>
-    </div>
-    <div id="bottomBar">
-      <div id="hint">Tap a corner to run. Landing on someone displaces them!</div>
-      <div id="speedRow">
-        <div id="speedLabel">SPEED</div>
-        <div id="speedMeter"><div id="speedFill"></div></div>
-        <div id="speedValue">0</div>
-      </div>
+  <div id="roomInfo">
+    <div>Room Code</div>
+    <div id="roomCodeBox">------</div>
+    <button id="btnCopy" class="secondary" style="margin-top:6px;">Copy Code</button>
+    <div id="playerList">Players: —</div>
+    <button id="btnStart" class="success" style="margin-top:12px;">Start Game</button>
+    <div id="levelSelect">
+      <div style="font-size:13px;color:#94a3b8;">Choose Level</div>
+      <button class="levelBtn" data-level="1">Level 1 – Calm</button>
+      <button class="levelBtn" data-level="2">Level 2 – Displacement</button>
+      <button class="levelBtn" data-level="3">Level 3 – Furious Hunter</button>
     </div>
   </div>
+</div>
 
-  <script>
-    let myName = '', myId = null, isHost = false, peer = null;
-    let connections = [];
-    let realPlayers = {};
-    let players = [], hunter = { x: 50, y: 50, angle: 0, targetId: null };
-    let selectedTarget = null, clickTimes = [], alive = 6;
-    let gameOver = false, gameStarted = false, lastTagTime = 0;
-    let currentLevel = 1;
-    let musicEnabled = true;
+<!-- GAME -->
+<div id="game">
+  <div id="arena"></div>
+  <div id="hunter">👁</div>
+  <div id="msg">Tap a corner to run!</div>
+  <div id="hud">
+    <div id="speedWrap">
+      <div id="speedLabel">SPEED</div>
+      <div id="speedBarBg"><div id="speedBar"></div></div>
+    </div>
+    <div id="levelBadge">L1</div>
+  </div>
+</div>
 
-    // More spread corners
-    const CORNER_POS = [
-      { id: 0, x: 10, y: 10 },
-      { id: 1, x: 50, y: 4 },
-      { id: 2, x: 90, y: 10 },
-      { id: 3, x: 90, y: 90 },
-      { id: 4, x: 50, y: 96 },
-      { id: 5, x: 10, y: 90 }
-    ];
+<div id="toast">Code copied!</div>
 
-    // Simple background music using Web Audio (no external file needed)
-    let audioCtx = null;
-    let musicNodes = [];
-    function startMusic() {
-      if (!musicEnabled || audioCtx) return;
-      try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const notes = [220, 277, 330, 440];
-        let t = audioCtx.currentTime;
-        notes.forEach((freq, i) => {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.value = freq;
-          gain.gain.value = 0.03;
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start(t + i * 0.4);
-          osc.stop(t + i * 0.4 + 8);
-          musicNodes.push(osc);
-        });
-        // simple loop drone
-        const drone = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        drone.frequency.value = 110;
-        drone.type = 'triangle';
-        g.gain.value = 0.025;
-        drone.connect(g);
-        g.connect(audioCtx.destination);
-        drone.start();
-        musicNodes.push(drone);
-      } catch(e) {}
+<script>
+(function() {
+  // ============ CONFIG ============
+  const MAX_PLAYERS = 6;
+  const PAD_COUNT = 6;
+  const PAD_RADIUS = 28;
+  const AVATAR_R = 21;
+  const HUNTER_R = 18;
+  const HUNTER_SAFE = 48; // min distance from any pad center
+
+  // ============ STATE ============
+  let myName = '';
+  let myId = Math.random().toString(36).slice(2, 8);
+  let isHost = false;
+  let roomCode = '';
+  let level = 1;
+  let gameRunning = false;
+  let players = []; // {id, name, isAI, x, y, pad, targetPad, speed, alive, color}
+  let hunter = { x: 0, y: 0, tx: 0, ty: 0, lookAngle: 0 };
+  let myPlayer = null;
+  let clickBoost = 0;
+  let lastClick = 0;
+  let arenaW = 0, arenaH = 0;
+  let pads = [];
+  let audioCtx = null;
+  let musicPlaying = false;
+
+  // ============ DOM ============
+  const lobby = document.getElementById('lobby');
+  const gameEl = document.getElementById('game');
+  const arena = document.getElementById('arena');
+  const hunterEl = document.getElementById('hunter');
+  const msgEl = document.getElementById('msg');
+  const speedBar = document.getElementById('speedBar');
+  const levelBadge = document.getElementById('levelBadge');
+  const roomInfo = document.getElementById('roomInfo');
+  const roomCodeBox = document.getElementById('roomCodeBox');
+  const playerList = document.getElementById('playerList');
+  const levelSelect = document.getElementById('levelSelect');
+  const toast = document.getElementById('toast');
+
+  // ============ AUDIO (simple looping tone music) ============
+  function ensureAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
-    function stopMusic() {
-      musicNodes.forEach(n => { try { n.stop(); } catch(e){} });
-      musicNodes = [];
-      if (audioCtx) { try { audioCtx.close(); } catch(e){} audioCtx = null; }
-    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
 
-    function showScreen(id) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
+  function startMusic() {
+    if (musicPlaying) return;
+    ensureAudio();
+    musicPlaying = true;
+    // Simple ambient loop using oscillators
+    const notes = [220, 277, 330, 277];
+    let i = 0;
+    function beat() {
+      if (!musicPlaying) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = notes[i % notes.length];
+      gain.gain.value = 0.04;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+      osc.stop(audioCtx.currentTime + 0.45);
+      i++;
+      setTimeout(beat, 480);
     }
+    beat();
+  }
 
-    function updateLobby() {
-      const list = document.getElementById('playerList');
-      list.innerHTML = '';
-      const entries = Object.values(realPlayers);
-      entries.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'player-item';
-        div.innerHTML = '<span>' + p.name + '</span>' + (p.isMe ? '<span class="tag">YOU</span>' : '');
-        list.appendChild(div);
-      });
-      const ai = Math.max(0, 6 - entries.length);
-      for (let i = 0; i < ai; i++) {
-        const div = document.createElement('div');
-        div.className = 'player-item';
-        div.innerHTML = '<span style="color:#64748b">AI Player</span>';
-        list.appendChild(div);
+  // ============ HELPERS ============
+  function showToast(t) {
+    toast.textContent = t;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 1500);
+  }
+
+  function setMsg(t) {
+    msgEl.textContent = t;
+  }
+
+  function genCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let c = '';
+    for (let i = 0; i < 6; i++) c += chars[Math.floor(Math.random() * chars.length)];
+    return c;
+  }
+
+  function layoutPads() {
+    pads = [];
+    const cx = arenaW / 2;
+    const cy = arenaH / 2;
+    const R = Math.min(arenaW, arenaH) * 0.36;
+    for (let i = 0; i < PAD_COUNT; i++) {
+      const a = (Math.PI * 2 * i) / PAD_COUNT - Math.PI / 2;
+      const x = cx + Math.cos(a) * R;
+      const y = cy + Math.sin(a) * R;
+      pads.push({ x, y, id: i });
+    }
+  }
+
+  function createPadElements() {
+    arena.querySelectorAll('.pad').forEach(e => e.remove());
+    pads.forEach((p, i) => {
+      const el = document.createElement('div');
+      el.className = 'pad';
+      el.style.left = (p.x - PAD_RADIUS) + 'px';
+      el.style.top = (p.y - PAD_RADIUS) + 'px';
+      el.dataset.pad = i;
+      el.textContent = (i + 1);
+      el.addEventListener('click', () => onPadTap(i));
+      el.addEventListener('touchstart', (e) => { e.preventDefault(); onPadTap(i); }, { passive: false });
+      arena.appendChild(el);
+    });
+  }
+
+  function clearAvatars() {
+    arena.querySelectorAll('.avatar').forEach(e => e.remove());
+  }
+
+  function renderAvatars() {
+    clearAvatars();
+    players.forEach(pl => {
+      if (!pl.alive) return;
+      const el = document.createElement('div');
+      el.className = 'avatar ' + (pl.id === myId ? 'you' : (pl.isAI ? 'ai' : 'friend'));
+      if (pl.displaced) el.classList.add('displaced');
+      el.style.left = (pl.x - AVATAR_R) + 'px';
+      el.style.top = (pl.y - AVATAR_R) + 'px';
+      el.textContent = pl.name.slice(0, 2).toUpperCase();
+      el.title = pl.name;
+      arena.appendChild(el);
+    });
+  }
+
+  function placeHunter() {
+    hunterEl.style.left = (hunter.x - HUNTER_R) + 'px';
+    hunterEl.style.top = (hunter.y - HUNTER_R) + 'px';
+  }
+
+  // Keep hunter away from pads
+  function clampHunterAwayFromPads() {
+    pads.forEach(p => {
+      const dx = hunter.x - p.x;
+      const dy = hunter.y - p.y;
+      const d = Math.hypot(dx, dy);
+      if (d < HUNTER_SAFE && d > 0.1) {
+        const push = (HUNTER_SAFE - d) / d;
+        hunter.x += dx * push;
+        hunter.y += dy * push;
       }
-      document.getElementById('lobbyStatus').textContent = entries.length + ' real player(s) • AI fills the rest';
-      document.getElementById('startBtn').disabled = !isHost;
-      document.getElementById('startBtn').style.display = isHost ? 'inline-block' : 'none';
-    }
+    });
+    // keep inside arena
+    hunter.x = Math.max(HUNTER_R + 4, Math.min(arenaW - HUNTER_R - 4, hunter.x));
+    hunter.y = Math.max(HUNTER_R + 4, Math.min(arenaH - HUNTER_R - 4, hunter.y));
+  }
 
-    function broadcast(data) {
-      connections.forEach(c => { if (c && c.open) c.send(data); });
-    }
+  // ============ GAME LOGIC ============
+  function onPadTap(padIndex) {
+    if (!gameRunning || !myPlayer || !myPlayer.alive) return;
+    const now = Date.now();
+    const dt = now - lastClick;
+    lastClick = now;
+    // faster clicks = higher boost
+    if (dt < 180) clickBoost = Math.min(1, clickBoost + 0.25);
+    else if (dt < 350) clickBoost = Math.min(1, clickBoost + 0.12);
+    else clickBoost = Math.max(0, clickBoost - 0.05);
 
-    function initHost() {
-      peer = new Peer();
-      peer.on('open', id => {
-        myId = id;
-        document.getElementById('roomCodeInput').value = id;
-        realPlayers[id] = { name: myName, isMe: true };
-        isHost = true;
-        updateLobby();
-        showScreen('lobbyScreen');
-      });
-      peer.on('connection', c => {
-        connections.push(c);
-        setupConn(c);
-      });
-      peer.on('error', e => {
-        console.error(e);
-        alert('Room error. Refresh and try again.');
-      });
-    }
+    myPlayer.targetPad = padIndex;
+    myPlayer.moving = true;
+  }
 
-    function initJoin(hostId) {
-      peer = new Peer();
-      peer.on('open', id => {
-        myId = id;
-        const c = peer.connect(hostId.trim(), { reliable: true });
-        connections.push(c);
-        setupConn(c);
-      });
-      peer.on('error', e => {
-        alert('Could not join. Check the code or try again.');
-        showScreen('menuScreen');
-      });
-    }
+  function getOccupant(padIndex) {
+    return players.find(p => p.alive && p.pad === padIndex && !p.moving);
+  }
 
-    function setupConn(c) {
-      c.on('open', () => {
-        if (!isHost) c.send({ type: 'join', name: myName, id: myId });
-      });
-      c.on('data', data => handleData(data, c));
+  function displacePlayer(pl) {
+    pl.displaced = true;
+    pl.moving = true;
+    pl.pad = -1;
+    // pick a free pad
+    const free = pads.map((_, i) => i).filter(i => !getOccupant(i) && i !== pl.targetPad);
+    if (free.length) {
+      pl.targetPad = free[Math.floor(Math.random() * free.length)];
+    } else {
+      pl.targetPad = Math.floor(Math.random() * PAD_COUNT);
     }
+    // hunter chases displaced
+    hunter.tx = pl.x;
+    hunter.ty = pl.y;
+    setMsg(pl.name + ' was displaced! Run!');
+  }
 
-    function handleData(data, fromConn) {
-      if (data.type === 'join' && isHost) {
-        realPlayers[data.id] = { name: data.name, isMe: false };
-        fromConn.send({ type: 'welcome', players: Object.values(realPlayers).map(p => ({ name: p.name })) });
-        broadcast({ type: 'player-list', players: Object.values(realPlayers).map(p => ({ name: p.name })) });
-        updateLobby();
-      }
-      if (data.type === 'welcome' && !isHost) {
-        realPlayers[myId] = { name: myName, isMe: true };
-        showScreen('lobbyScreen');
-        document.getElementById('roomCodeInput').value = 'Joined successfully';
-        document.getElementById('copyCodeBtn').style.display = 'none';
-        updateLobbyFromList(data.players);
-      }
-      if (data.type === 'player-list') updateLobbyFromList(data.players);
-      if (data.type === 'start') {
-        currentLevel = data.level || 1;
-        startGame(data.realNames || []);
-      }
-      if (data.type === 'move') {
-        const p = players.find(pl => pl.realId === data.id);
-        if (p) {
-          p.targetCorner = data.target;
-          p.isMoving = true;
-          p.speed = data.speed;
+  function updatePlayers(dt) {
+    players.forEach(pl => {
+      if (!pl.alive) return;
+      if (pl.targetPad == null || pl.targetPad < 0) return;
+
+      const target = pads[pl.targetPad];
+      const dx = target.x - pl.x;
+      const dy = target.y - pl.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 4) {
+        // arrived
+        const occupant = getOccupant(pl.targetPad);
+        if (occupant && occupant.id !== pl.id) {
+          // displacement rule (level 2+)
+          if (level >= 2) {
+            displacePlayer(occupant);
+          } else {
+            // level 1: cannot take occupied
+            pl.targetPad = pl.pad >= 0 ? pl.pad : null;
+            pl.moving = false;
+            return;
+          }
         }
+        pl.x = target.x;
+        pl.y = target.y;
+        pl.pad = pl.targetPad;
+        pl.targetPad = null;
+        pl.moving = false;
+        pl.displaced = false;
+        return;
       }
-      if (data.type === 'state' && !isHost) applyState(data);
-      if (data.type === 'tag') {
-        const p = players.find(pl => pl.id === data.playerId);
-        if (p) {
-          p.isOut = true;
-          p.isMoving = false;
-          alive--;
-          updateScore();
-          say('TAGGED!');
-        }
-      }
-      if (data.type === 'round-end') {
-        gameOver = true;
-        document.getElementById('status').textContent = data.message;
-      }
-    }
 
-    function updateLobbyFromList(list) {
-      const el = document.getElementById('playerList');
-      el.innerHTML = '';
-      const self = document.createElement('div');
-      self.className = 'player-item';
-      self.innerHTML = '<span>' + myName + '</span><span class="tag">YOU</span>';
-      el.appendChild(self);
-      list.forEach(p => {
-        if (p.name === myName) return;
-        const div = document.createElement('div');
-        div.className = 'player-item';
-        div.innerHTML = '<span>' + p.name + '</span>';
-        el.appendChild(div);
-      });
-      const total = list.length + (list.some(p => p.name === myName) ? 0 : 1);
-      for (let i = 0; i < Math.max(0, 6 - total); i++) {
-        const div = document.createElement('div');
-        div.className = 'player-item';
-        div.innerHTML = '<span style="color:#64748b">AI Player</span>';
-        el.appendChild(div);
+      // speed
+      let base = pl.isAI ? 90 : 70;
+      if (pl.id === myId) base += clickBoost * 140;
+      if (pl.displaced) base *= 1.25;
+      if (level === 3) base *= 1.1;
+
+      const step = (base * dt) / 1000;
+      const ratio = Math.min(1, step / dist);
+      pl.x += dx * ratio;
+      pl.y += dy * ratio;
+      pl.moving = true;
+    });
+  }
+
+  function updateHunter(dt) {
+    // find best target: displaced first, then moving, then idle
+    let target = null;
+    let bestScore = -1;
+    players.forEach(pl => {
+      if (!pl.alive) return;
+      let score = 0;
+      if (pl.displaced) score = 100;
+      else if (pl.moving) score = 60;
+      else score = 20;
+      // closer = better
+      const d = Math.hypot(pl.x - hunter.x, pl.y - hunter.y);
+      score += Math.max(0, 40 - d / 10);
+      if (score > bestScore) {
+        bestScore = score;
+        target = pl;
       }
-      document.getElementById('lobbyStatus').textContent = total + ' real player(s) • AI fills the rest';
-      document.getElementById('startBtn').style.display = 'none';
-    }
-
-    // Buttons
-    document.getElementById('createBtn').onclick = () => {
-      myName = document.getElementById('nameInput').value.trim() || 'Player';
-      initHost();
-    };
-    document.getElementById('joinBtn').onclick = () => {
-      myName = document.getElementById('nameInput').value.trim() || 'Player';
-      showScreen('joinScreen');
-    };
-    document.getElementById('confirmJoinBtn').onclick = () => {
-      const code = document.getElementById('codeInput').value.trim();
-      if (!code) return alert('Paste the room code');
-      initJoin(code);
-    };
-    document.getElementById('backFromJoin').onclick = () => showScreen('menuScreen');
-    document.getElementById('startBtn').onclick = () => {
-      if (!isHost) return;
-      showScreen('levelScreen');
-    };
-    document.getElementById('leaveBtn').onclick = () => { stopMusic(); location.reload(); };
-    document.getElementById('backLevel').onclick = () => showScreen('lobbyScreen');
-
-    document.querySelectorAll('.level-btn').forEach(btn => {
-      btn.onclick = () => {
-        currentLevel = parseInt(btn.dataset.level);
-        const realNames = Object.values(realPlayers).map(p => p.name);
-        broadcast({ type: 'start', realNames: realNames, level: currentLevel });
-        startGame(realNames);
-      };
     });
 
-    document.getElementById('copyCodeBtn').onclick = () => {
-      const input = document.getElementById('roomCodeInput');
-      input.select();
-      navigator.clipboard.writeText(input.value).then(() => {
-        const btn = document.getElementById('copyCodeBtn');
-        btn.textContent = 'Copied!';
-        setTimeout(() => btn.textContent = 'Copy Code', 1400);
-      }).catch(() => {
-        document.execCommand('copy');
-        const btn = document.getElementById('copyCodeBtn');
-        btn.textContent = 'Copied!';
-        setTimeout(() => btn.textContent = 'Copy Code', 1400);
+    if (target) {
+      hunter.tx = target.x;
+      hunter.ty = target.y;
+    }
+
+    const dx = hunter.tx - hunter.x;
+    const dy = hunter.ty - hunter.y;
+    const dist = Math.hypot(dx, dy) || 1;
+    let speed = level === 1 ? 55 : level === 2 ? 80 : 110;
+    const step = (speed * dt) / 1000;
+    hunter.x += (dx / dist) * Math.min(step, dist);
+    hunter.y += (dy / dist) * Math.min(step, dist);
+
+    clampHunterAwayFromPads();
+    placeHunter();
+
+    // tag check — only while player is moving / displaced
+    players.forEach(pl => {
+      if (!pl.alive) return;
+      if (!pl.moving && !pl.displaced) return;
+      const d = Math.hypot(pl.x - hunter.x, pl.y - hunter.y);
+      if (d < HUNTER_R + AVATAR_R - 4) {
+        pl.alive = false;
+        pl.moving = false;
+        setMsg(pl.name + ' was tagged!');
+        checkWin();
+      }
+    });
+  }
+
+  function checkWin() {
+    const alive = players.filter(p => p.alive);
+    if (alive.length <= 1) {
+      gameRunning = false;
+      if (alive.length === 1) {
+        setMsg(alive[0].name + ' wins!');
+      } else {
+        setMsg('No one left!');
+      }
+      setTimeout(() => {
+        // return to lobby options
+        gameEl.style.display = 'none';
+        lobby.style.display = 'flex';
+        levelSelect.style.display = 'flex';
+        roomInfo.style.display = 'block';
+      }, 2500);
+    }
+  }
+
+  function aiThink() {
+    players.forEach(pl => {
+      if (!pl.isAI || !pl.alive || pl.moving) return;
+      // random chance to move
+      if (Math.random() < 0.008 * level) {
+        let candidates = pads.map((_, i) => i);
+        if (level === 1) {
+          candidates = candidates.filter(i => !getOccupant(i));
+        }
+        if (candidates.length) {
+          pl.targetPad = candidates[Math.floor(Math.random() * candidates.length)];
+          pl.moving = true;
+        }
+      }
+    });
+  }
+
+  let lastTs = 0;
+  function loop(ts) {
+    if (!gameRunning) return;
+    const dt = Math.min(50, ts - (lastTs || ts));
+    lastTs = ts;
+
+    // decay click boost
+    clickBoost = Math.max(0, clickBoost - dt * 0.0008);
+    speedBar.style.width = (clickBoost * 100) + '%';
+
+    updatePlayers(dt);
+    updateHunter(dt);
+    aiThink();
+    renderAvatars();
+
+    requestAnimationFrame(loop);
+  }
+
+  // ============ START GAME ============
+  function startGame(chosenLevel) {
+    level = chosenLevel || 1;
+    levelBadge.textContent = 'L' + level;
+    ensureAudio();
+    startMusic();
+
+    arenaW = arena.clientWidth || window.innerWidth;
+    arenaH = arena.clientHeight || (window.innerHeight - 70);
+    layoutPads();
+    createPadElements();
+
+    // build players list: real ones first, then AI fill
+    const real = players.filter(p => !p.isAI);
+    players = [];
+    real.forEach((r, idx) => {
+      const pad = idx % PAD_COUNT;
+      players.push({
+        id: r.id,
+        name: r.name,
+        isAI: false,
+        x: pads[pad].x,
+        y: pads[pad].y,
+        pad,
+        targetPad: null,
+        alive: true,
+        moving: false,
+        displaced: false
       });
+    });
+    // AI fill
+    let aiCount = 0;
+    while (players.length < MAX_PLAYERS) {
+      const pad = players.length % PAD_COUNT;
+      // if pad taken, find free
+      let freePad = pads.findIndex((_, i) => !players.some(p => p.pad === i));
+      if (freePad < 0) freePad = players.length % PAD_COUNT;
+      aiCount++;
+      players.push({
+        id: 'ai' + aiCount,
+        name: 'AI-' + aiCount,
+        isAI: true,
+        x: pads[freePad].x,
+        y: pads[freePad].y,
+        pad: freePad,
+        targetPad: null,
+        alive: true,
+        moving: false,
+        displaced: false
+      });
+    }
+
+    myPlayer = players.find(p => p.id === myId);
+
+    // hunter starts in center
+    hunter.x = arenaW / 2;
+    hunter.y = arenaH / 2;
+    hunter.tx = hunter.x;
+    hunter.ty = hunter.y;
+    clampHunterAwayFromPads();
+    placeHunter();
+
+    lobby.style.display = 'none';
+    gameEl.style.display = 'block';
+    gameRunning = true;
+    lastTs = 0;
+    setMsg(level === 1 ? 'Level 1 – Stay safe!' : level === 2 ? 'Displacement ON!' : 'Furious Hunter!');
+    renderAvatars();
+    requestAnimationFrame(loop);
+  }
+
+  // ============ LOBBY ACTIONS ============
+  function refreshPlayerList() {
+    const names = players.map(p => p.name + (p.id === myId ? ' (you)' : '')).join(', ');
+    playerList.textContent = 'Players: ' + (names || '—');
+  }
+
+  document.getElementById('btnSolo').onclick = () => {
+    ensureAudio();
+    myName = document.getElementById('nameInput').value.trim() || 'Player';
+    myId = Math.random().toString(36).slice(2, 8);
+    isHost = true;
+    players = [{ id: myId, name: myName, isAI: false }];
+    roomCode = 'SOLO';
+    roomCodeBox.textContent = 'SOLO';
+    roomInfo.style.display = 'block';
+    levelSelect.style.display = 'flex';
+    document.getElementById('btnStart').style.display = 'none';
+    refreshPlayerList();
+  };
+
+  document.getElementById('btnCreate').onclick = () => {
+    ensureAudio();
+    myName = document.getElementById('nameInput').value.trim() || 'Player';
+    myId = Math.random().toString(36).slice(2, 8);
+    isHost = true;
+    roomCode = genCode();
+    players = [{ id: myId, name: myName, isAI: false }];
+    roomCodeBox.textContent = roomCode;
+    roomInfo.style.display = 'block';
+    levelSelect.style.display = 'flex';
+    document.getElementById('btnStart').style.display = 'block';
+    refreshPlayerList();
+    // store in localStorage so same-device join can work for testing
+    localStorage.setItem('cf_room_' + roomCode, JSON.stringify({
+      host: myName,
+      players: players.map(p => ({ id: p.id, name: p.name }))
+    }));
+  };
+
+  document.getElementById('btnCopy').onclick = () => {
+    const code = roomCodeBox.textContent;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => showToast('Code copied!'));
+    } else {
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = code;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Code copied!');
+    }
+  };
+
+  document.getElementById('btnJoin').onclick = () => {
+    ensureAudio();
+    myName = document.getElementById('nameInput').value.trim() || 'Player';
+    const code = document.getElementById('codeInput').value.trim().toUpperCase();
+    if (!code || code.length < 4) {
+      alert('Enter a valid room code');
+      return;
+    }
+    roomCode = code;
+    myId = Math.random().toString(36).slice(2, 8);
+    isHost = false;
+
+    // try localStorage (same device / same browser test)
+    const raw = localStorage.getItem('cf_room_' + code);
+    if (raw) {
+      try {
+        const data = JSON.parse(raw);
+        players = data.players.map(p => ({ id: p.id, name: p.name, isAI: false }));
+        // add self if not already
+        if (!players.find(p => p.name === myName)) {
+          players.push({ id: myId, name: myName, isAI: false });
+          data.players = players.map(p => ({ id: p.id, name: p.name }));
+          localStorage.setItem('cf_room_' + code, JSON.stringify(data));
+        } else {
+          // update id for same name
+          const existing = players.find(p => p.name === myName);
+          if (existing) myId = existing.id;
+        }
+      } catch (e) {
+        players = [{ id: myId, name: myName, isAI: false }];
+      }
+    } else {
+      // no room found – still allow join as local demo
+      players = [
+        { id: 'host', name: 'Host', isAI: false },
+        { id: myId, name: myName, isAI: false }
+      ];
+    }
+
+    roomCodeBox.textContent = roomCode;
+    roomInfo.style.display = 'block';
+    levelSelect.style.display = 'flex';
+    document.getElementById('btnStart').style.display = 'block';
+    refreshPlayerList();
+    showToast('Joined room ' + roomCode);
+  };
+
+  document.getElementById('btnStart').onclick = () => {
+    levelSelect.style.display = 'flex';
+    setMsg('Choose a level to start');
+  };
+
+  document.querySelectorAll('.levelBtn').forEach(btn => {
+    btn.onclick = () => {
+      const lv = parseInt(btn.dataset.level, 10);
+      startGame(lv);
     };
+  });
 
-    function startGame(realNames) {
-      gameStarted = true;
-      gameOver = false;
-      alive = 6;
-      showScreen('gameScreen');
-      startMusic();
-
-      players = [];
-      const names = realNames && realNames.length ? realNames : [myName];
-      for (let i = 0; i < 6; i++) {
-        const pos = CORNER_POS[i];
-        const isReal = i < names.length;
-        const name = isReal ? names[i] : 'AI-' + (i + 1);
-        const isYou = isReal && name === myName;
-        players.push({
-          id: i, name: name, x: pos.x, y: pos.y, cornerId: i,
-          targetCorner: null, speed: 0, isMoving: false, isOut: false,
-          isYou: isYou, isFriend: isReal && !isYou, isAI: !isReal,
-          realId: isYou ? myId : null, idleTime: 0
-        });
-      }
-      if (isHost) {
-        let ri = 0;
-        Object.keys(realPlayers).forEach(pid => {
-          if (players[ri]) players[ri].realId = pid;
-          ri++;
-        });
-      }
-
-      hunter = { x: 50, y: 50, angle: 0, targetId: null };
-      selectedTarget = null;
-      clickTimes = [];
-      renderCorners();
-      renderAll();
-      document.getElementById('status').textContent = 'Level ' + currentLevel + ' • Tap corners!';
-      updateScore();
-      if (isHost) startHostLoop();
-      else startClientLoop();
-    }
-
-    function updateScore() {
-      document.getElementById('scoreBoard').textContent = 'Alive: ' + alive + ' | L' + currentLevel;
-    }
-
-    function renderCorners() {
-      const arena = document.getElementById('arena');
-      arena.innerHTML = '';
-      CORNER_POS.forEach(c => {
-        const div = document.createElement('div');
-        div.className = 'corner';
-        div.style.left = 'calc(' + c.x + '% - 27px)';
-        div.style.top = 'calc(' + c.y + '% - 27px)';
-        div.dataset.id = c.id;
-        div.addEventListener('click', () => onCornerClick(c.id));
-        arena.appendChild(div);
-      });
-      const h = document.createElement('div');
-      h.id = 'hunter';
-      h.innerHTML = '<div class="eyes">👀</div><div class="label">HUNTER</div>';
-      arena.appendChild(h);
-    }
-
-    function renderAll() {
-      document.querySelectorAll('.avatar').forEach(e => e.remove());
-      players.forEach(p => {
-        const div = document.createElement('div');
-        let cls = 'avatar';
-        if (p.isYou) cls += ' you';
-        else if (p.isFriend) cls += ' friend';
-        else cls += ' ai';
-        if (p.isOut) cls += ' out';
-        if (p.isMoving) cls += ' moving';
-        if (p.justDisplaced) cls += ' displaced';
-        div.className = cls;
-        div.style.left = 'calc(' + p.x + '% - 24px)';
-        div.style.top = 'calc(' + p.y + '% - 24px)';
-        div.innerHTML = '<div>' + (p.isYou ? 'YOU' : (p.isFriend ? 'P' : (p.id+1))) + '</div><div class="name">' + p.name + '</div>';
-        document.getElementById('arena').appendChild(div);
-      });
-      const hEl = document.getElementById('hunter');
-      if (hEl) {
-        hEl.style.left = 'calc(' + hunter.x + '% - 32px)';
-        hEl.style.top = 'calc(' + hunter.y + '% - 32px)';
-        hEl.style.transform = 'rotate(' + hunter.angle + 'deg)';
-      }
-      document.querySelectorAll('.corner').forEach(c => {
-        c.classList.toggle('active-target', selectedTarget !== null && +c.dataset.id === selectedTarget);
-      });
-    }
-
-    function onCornerClick(cornerId) {
-      if (gameOver || !gameStarted) return;
-      const me = players.find(p => p.isYou && !p.isOut);
-      if (!me) return;
-
-      const now = performance.now();
-      clickTimes.push(now);
-      clickTimes = clickTimes.filter(t => now - t < 800);
-      const newSpeed = Math.min(2.9, 0.35 + clickTimes.length * 0.4);
-
-      if (me.targetCorner === cornerId && me.isMoving) {
-        me.speed = Math.max(me.speed, newSpeed);
-      } else {
-        me.targetCorner = cornerId;
-        me.isMoving = true;
-        me.speed = newSpeed;
-        selectedTarget = cornerId;
-      }
-
-      const pct = Math.min(100, (me.speed / 2.9) * 100);
-      document.getElementById('speedFill').style.width = pct + '%';
-      document.getElementById('speedValue').textContent = me.speed.toFixed(1);
-      document.getElementById('status').textContent = 'Running...';
-
-      broadcast({ type: 'move', id: myId, target: cornerId, speed: me.speed });
-    }
-
-    // CORE NEW LOGIC: when arriving at occupied corner → displace the previous player
-    function arriveAtCorner(p) {
-      const targetId = p.targetCorner;
-      const occupant = players.find(o => o.cornerId === targetId && o.id !== p.id && !o.isOut && !o.isMoving);
-
-      p.x = CORNER_POS[targetId].x;
-      p.y = CORNER_POS[targetId].y;
-      p.cornerId = targetId;
-      p.isMoving = false;
-      p.speed = 0;
-      p.targetCorner = null;
-      p.idleTime = 0;
-
-      if (p.isYou) {
-        selectedTarget = null;
-        document.getElementById('speedFill').style.width = '0%';
-        document.getElementById('speedValue').textContent = '0';
-      }
-
-      // Displacement (main new rule)
-      if (occupant && currentLevel >= 2) {
-        // Force the previous player out
-        occupant.justDisplaced = true;
-        setTimeout(() => { occupant.justDisplaced = false; }, 500);
-
-        // Find a free corner for the displaced player
-        const freeCorners = CORNER_POS.filter(c => !players.some(pl => pl.cornerId === c.id && !pl.isOut && pl.id !== occupant.id));
-        if (freeCorners.length > 0) {
-          const escape = freeCorners[Math.floor(Math.random() * freeCorners.length)];
-          occupant.targetCorner = escape.id;
-          occupant.isMoving = true;
-          occupant.speed = 1.4 + Math.random() * 0.8;
-          if (occupant.isYou) {
-            document.getElementById('status').textContent = 'You were displaced! Run!';
-          }
-        } else {
-          // No free corner - they become vulnerable
-          occupant.isMoving = true;
-          occupant.speed = 1.2;
-          occupant.targetCorner = (occupant.cornerId + 1) % 6;
-        }
-
-        // Hunter gets attracted to the displaced player
-        if (currentLevel >= 2) {
-          hunter.targetId = occupant.id;
-        }
-        say('Displaced!');
-      }
-
-      if (p.isYou) {
-        document.getElementById('status').textContent = 'Safe at corner!';
-      }
-    }
-
-    function movePlayers(dt) {
-      players.forEach(p => {
-        if (p.isOut) return;
-        if (!p.isMoving) {
-          p.idleTime = (p.idleTime || 0) + dt;
-          return;
-        }
-        p.idleTime = 0;
-
-        const target = CORNER_POS[p.targetCorner];
-        const dx = target.x - p.x, dy = target.y - p.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 1.5) {
-          arriveAtCorner(p);
-          return;
-        }
-        const step = p.speed * dt * 0.055;
-        p.x += (dx / dist) * step;
-        p.y += (dy / dist) * step;
-      });
-    }
-
-    let aiTimer = 0, lookTimer = 0, patrol = 0;
-    function updateAI(dt) {
-      // AI players decide to move
-      aiTimer += dt;
-      if (aiTimer > 900) {
-        aiTimer = 0;
-        players.forEach(p => {
-          if (!p.isAI || p.isOut || p.isMoving) return;
-          if (Math.random() < 0.38) {
-            let nc;
-            do { nc = Math.floor(Math.random() * 6); } while (nc === p.cornerId);
-            p.targetCorner = nc;
-            p.isMoving = true;
-            p.speed = 0.7 + Math.random() * 1.3;
-          }
-        });
-      }
-
-      // Hunter behavior based on level
-      const aggressiveness = currentLevel === 1 ? 0.012 : (currentLevel === 2 ? 0.025 : 0.04);
-      const huntSpeed = currentLevel === 1 ? 0.6 : (currentLevel === 2 ? 0.95 : 1.35);
-
-      lookTimer += dt;
-      if (lookTimer > 900 + Math.random() * 800) {
-        lookTimer = 0;
-
-        // Prefer targeting displaced or idle players
-        let target = null;
-        if (hunter.targetId !== null) {
-          target = players.find(p => p.id === hunter.targetId && !p.isOut);
-        }
-        if (!target) {
-          // Target someone who is idle too long or moving
-          const candidates = players.filter(p => !p.isOut && (p.isMoving || (p.idleTime > 2500)));
-          if (candidates.length) target = candidates[Math.floor(Math.random() * candidates.length)];
-        }
-        if (!target) {
-          const living = players.filter(p => !p.isOut);
-          if (living.length) target = living[Math.floor(Math.random() * living.length)];
-        }
-
-        if (target) {
-          hunter.targetId = target.id;
-          hunter.angle = Math.atan2(target.y - hunter.y, target.x - hunter.x) * 180 / Math.PI + 90;
-          if (Math.random() < 0.45) say(['I see you!', 'Run!', 'Got you soon!', 'Stay still...'][Math.floor(Math.random()*4)]);
-        } else {
-          hunter.angle = Math.random() * 360;
-        }
-      }
-
-      // Move hunter toward target or patrol between corners
-      if (hunter.targetId !== null) {
-        const t = players.find(p => p.id === hunter.targetId && !p.isOut);
-        if (t) {
-          const dx = t.x - hunter.x, dy = t.y - hunter.y;
-          const dist = Math.sqrt(dx*dx + dy*dy);
-          if (dist > 3) {
-            hunter.x += (dx / dist) * huntSpeed * dt * 0.04;
-            hunter.y += (dy / dist) * huntSpeed * dt * 0.04;
-          }
-        } else {
-          hunter.targetId = null;
-        }
-      } else {
-        // Patrol - move between corners more freely
-        patrol += dt * 0.0004;
-        const tx = 50 + Math.cos(patrol) * 28;
-        const ty = 50 + Math.sin(patrol * 0.7) * 26;
-        hunter.x += (tx - hunter.x) * 0.006 * dt;
-        hunter.y += (ty - hunter.y) * 0.006 * dt;
-      }
-
-      // Keep hunter inside bounds
-      hunter.x = Math.max(8, Math.min(92, hunter.x));
-      hunter.y = Math.max(8, Math.min(92, hunter.y));
-    }
-
-    function checkTags() {
-      const now = performance.now();
-      if (now - lastTagTime < 700) return;
-      players.forEach(p => {
-        if (p.isOut || !p.isMoving) return;
-        const dist = Math.sqrt((p.x - hunter.x)**2 + (p.y - hunter.y)**2);
-        const tagDist = currentLevel >= 3 ? 13.5 : 12;
-        if (dist < tagDist) {
-          p.isOut = true;
-          p.isMoving = false;
-          alive--;
-          lastTagTime = now;
-          updateScore();
-          say('TAGGED!');
-          broadcast({ type: 'tag', playerId: p.id });
-          if (alive <= 1) endRound();
-        }
-      });
-    }
-
-    function endRound() {
-      gameOver = true;
-      stopMusic();
-      const winner = players.find(p => !p.isOut);
-      const msg = winner ? (winner.isYou ? 'YOU WIN!' : winner.name + ' wins!') : 'Everyone out!';
-      document.getElementById('status').textContent = msg;
-      broadcast({ type: 'round-end', message: msg });
-    }
-
-    function say(text) {
-      const el = document.getElementById('speech');
-      el.textContent = text;
-      el.style.left = 'calc(' + hunter.x + '% - 45px)';
-      el.style.top = 'calc(' + hunter.y + '% - 78px)';
-      el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 1200);
-    }
-
-    function startHostLoop() {
-      let last = performance.now();
-      function loop(now) {
-        if (!gameStarted) return;
-        const dt = Math.min(32, now - last);
-        last = now;
-        if (!gameOver) {
-          movePlayers(dt);
-          updateAI(dt);
-          checkTags();
-          if (Math.random() < 0.12) {
-            broadcast({
-              type: 'state',
-              players: players.map(p => ({
-                id: p.id, x: p.x, y: p.y, isMoving: p.isMoving,
-                isOut: p.isOut, targetCorner: p.targetCorner, speed: p.speed, cornerId: p.cornerId
-              })),
-              hunter: { x: hunter.x, y: hunter.y, angle: hunter.angle, targetId: hunter.targetId },
-              alive: alive
-            });
-          }
-        }
-        renderAll();
-        requestAnimationFrame(loop);
-      }
-      requestAnimationFrame(loop);
-    }
-
-    function startClientLoop() {
-      let last = performance.now();
-      function loop(now) {
-        if (!gameStarted) return;
-        const dt = Math.min(32, now - last);
-        last = now;
-        if (!gameOver) movePlayers(dt);
-        renderAll();
-        requestAnimationFrame(loop);
-      }
-      requestAnimationFrame(loop);
-    }
-
-    function applyState(data) {
-      data.players.forEach(sp => {
-        const p = players.find(pl => pl.id === sp.id);
-        if (p && !p.isYou) {
-          p.x = sp.x; p.y = sp.y;
-          p.isMoving = sp.isMoving;
-          p.isOut = sp.isOut;
-          p.targetCorner = sp.targetCorner;
-          p.speed = sp.speed;
-          p.cornerId = sp.cornerId;
-        }
-      });
-      hunter.x = data.hunter.x;
-      hunter.y = data.hunter.y;
-      hunter.angle = data.hunter.angle;
-      hunter.targetId = data.hunter.targetId;
-      alive = data.alive;
-      updateScore();
-    }
-  </script>
+  // resize
+  window.addEventListener('resize', () => {
+    if (!gameRunning) return;
+    arenaW = arena.clientWidth;
+    arenaH = arena.clientHeight;
+    layoutPads();
+    createPadElements();
+  });
+})();
+</script>
 </body>
 </html>

@@ -1,56 +1,36 @@
-CORNER FRENZY - Multiplayer Prototype (Phase 1 + Friends)
-=======================================================
+Corner Frenzy - Updated Version
+================================
 
-HOW TO PLAY WITH A FRIEND
--------------------------
+HOW TO PLAY
+1. Open index.html in any browser (phone or computer)
+2. Type your name
+3. Play Solo, or Create Room / Join Room
 
-1. Both of you open the same index.html file in a browser
-   (Chrome recommended on phone or computer).
+ROOM CODES
+- Codes are short (6 characters), e.g. CF7K2P
+- Host: Create Room → Copy Code → send to friends
+- Friends: paste code and Join
+- Host (or any player) can pick a Level to start
+- AI fills empty slots up to 6 players
 
-2. One person (Host):
-   - Type your name
-   - Click "Create Room"
-   - You will see a long room code
-   - Copy the FULL code and send it to your friend (WhatsApp, etc.)
+LEVELS
+- Level 1 Calm: cannot take occupied corners
+- Level 2 Displacement: landing on someone forces them to run
+- Level 3 Furious Hunter: faster aggressive hunter
 
-3. Second person (Friend):
-   - Type your name
-   - Click "Join Room"
-   - Paste the full code you received
-   - Click Join
+CONTROLS
+- Tap a corner to run there
+- Tap faster = run faster (watch the SPEED bar at the bottom)
+- Hunter never sits on corners and cannot block taps
 
-4. When both are in the lobby, the Host clicks "Start Game"
+UPDATE YOUR NETLIFY SITE
+1. Replace index.html in your project folder with this one
+2. git add .
+3. git commit -m "Hunter off pads, short codes, music, levels start"
+4. git push
+5. Wait 1-2 minutes and hard-refresh on phone
 
-5. You both control your own avatar:
-   - Green = You
-   - Purple = Your friend
-   - Blue = AI players
-
-6. Click corners to run. Click faster = run faster.
-   AI Hunter tries to tag anyone who is moving.
-
-
-IMPORTANT NOTES
----------------
-- This version uses PeerJS (free peer-to-peer).
-- Both players need internet.
-- Best on the same Wi-Fi, but works over internet too.
-- If connection fails, refresh and try again.
-- Only 2 real players supported in this prototype.
-- The other 4 players are AI.
-
-
-NO INSTALLATION NEEDED
-----------------------
-Just open index.html in any modern browser.
-No Node.js, no server setup required for this version.
-
-
-NEXT IMPROVEMENTS (later)
--------------------------
-- Shorter room codes
-- Music
-- Better avatars
-- More than 2 real players
-- Irritate the hunter
-- Points / ranking
+NOTES
+- Music starts after you tap a button (browser autoplay rules)
+- Same-browser multiplayer works via localStorage for quick tests
+- For real cross-device multiplayer later we can add a free server
