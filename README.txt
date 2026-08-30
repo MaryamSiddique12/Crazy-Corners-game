@@ -1,36 +1,27 @@
-Corner Frenzy - Updated Version
-================================
+Corner Frenzy – Lobby update (keep all game rules the same)
 
-HOW TO PLAY
-1. Open index.html in any browser (phone or computer)
-2. Type your name
-3. Play Solo, or Create Room / Join Room
+WHAT CHANGED (only lobby)
+- Host sees a live list of who joined (with names)
+- Two clear buttons:
+  1) "Start now (fill with AI)" – start even with 1–5 real players
+  2) "Keep waiting" – stay in lobby for more friends
+- When game starts, every real player appears with the name they typed
+- AI fills remaining spots up to 6
+- Levels, hunter, displacement, music, speed bar, controls = unchanged
 
-ROOM CODES
-- Codes are short (6 characters), e.g. CF7K2P
-- Host: Create Room → Copy Code → send to friends
-- Friends: paste code and Join
-- Host (or any player) can pick a Level to start
-- AI fills empty slots up to 6 players
+HOW TO PLAY WITH FRIENDS
+1. Both open the same website link (your Netlify link)
+2. Host: type name → Create Room → Copy Code → send to friends
+3. Friends: type name → paste code → Join
+4. Host sees names appear in "Players in room"
+5. Host: either wait, or tap "Start now (fill with AI)" → pick Level
 
-LEVELS
-- Level 1 Calm: cannot take occupied corners
-- Level 2 Displacement: landing on someone forces them to run
-- Level 3 Furious Hunter: faster aggressive hunter
-
-CONTROLS
-- Tap a corner to run there
-- Tap faster = run faster (watch the SPEED bar at the bottom)
-- Hunter never sits on corners and cannot block taps
-
-UPDATE YOUR NETLIFY SITE
-1. Replace index.html in your project folder with this one
+UPDATE NETLIFY
+1. Replace index.html with this file
 2. git add .
-3. git commit -m "Hunter off pads, short codes, music, levels start"
+3. git commit -m "Lobby: live player list + Start with AI button"
 4. git push
-5. Wait 1-2 minutes and hard-refresh on phone
+5. Wait 1–2 min, hard-refresh on phones
 
-NOTES
-- Music starts after you tap a button (browser autoplay rules)
-- Same-browser multiplayer works via localStorage for quick tests
-- For real cross-device multiplayer later we can add a free server
+NOTE
+Room code is the PeerJS id (copy-paste). Both devices need internet.
